@@ -1,5 +1,7 @@
 # AI Portfolio · 三个可运行的 AI 工程项目
 
+中文 | [English](README.en.md)
+
 ![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
 ![Tests](https://img.shields.io/badge/tests-93%20passing-176b4d)
 ![Offline](https://img.shields.io/badge/demo-offline--first-102b25)
