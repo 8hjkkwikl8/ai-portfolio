@@ -4,3 +4,9 @@
 {"question":"长期远程办公的设备与网络补贴如何发放？","expected_sources":["remote_work.txt"]}
 {"question":"收到可疑钓鱼邮件应该怎么处理？","expected_sources":["security_baseline.txt"]}
 {"question":"发现信息泄露等安全事件需要在多久内报告？","expected_sources":["security_baseline.txt"]}
+{"question":"国内出差的餐食补贴按什么标准发放？","expected_sources":["travel_policy.txt"]}
+{"question":"国际出差需要提前多少天申请，由谁审批？","expected_sources":["travel_policy.txt"]}
+{"question":"哪些岗位不适合常规远程办公？","expected_sources":["remote_work.txt"]}
+{"question":"远程办公的绩效评价会以在线时长为标准吗？","expected_sources":["remote_work.txt"]}
+{"question":"公司账号密码的长度和存储有什么要求？","expected_sources":["security_baseline.txt"]}
+{"question":"已经误点了钓鱼邮件里的链接应该怎么办？","expected_sources":["security_baseline.txt"]}

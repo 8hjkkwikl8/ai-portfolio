@@ -55,7 +55,7 @@ cd datachat_bi  && python demo.py
 - 金标评测输出 Recall@k、MRR、引用编号合法率与延迟；零引用记 `N/A`，不伪造 100%。
 - SQLite 持久化，按来源整体替换，重复导入不会堆积重复语料。
 
-演示集为 3 篇中文制度文档、13 个分块、6 条金标问题。当前结果 Recall@3 = 1.0、MRR = 1.0、引用编号合法率 = 1.0、平均延迟约 18 ms（随本机环境浮动），仅用于验证链路，不代表生产语料效果。详见 [insightrag/README.md](insightrag/README.md)。
+演示集为 3 篇中文制度文档、13 个分块、12 条金标问题。当前结果 Recall@3 = 1.0、MRR = 1.0、引用编号合法率 = 1.0、平均延迟约 14 ms（随本机环境浮动），仅用于验证链路，不代表生产语料效果。详见 [insightrag/README.md](insightrag/README.md)。
 
 ### PromptLens · 提示词版本管理与可复现评测
 

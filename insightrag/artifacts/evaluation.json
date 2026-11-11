@@ -1,11 +1,11 @@
 {
-  "cases": 6,
+  "cases": 12,
   "k": 3,
   "recall_at_k": 1.0,
   "mrr": 1.0,
   "citation_id_valid_rate": 1.0,
   "citation_metric_note": "仅校验引用编号合法性，不代表语义忠实度；无引用时记 N/A。",
-  "average_latency_ms": 18.365,
+  "average_latency_ms": 14.008,
   "details": [
     {
       "question": "国内差旅住宿标准是多少？",
@@ -20,7 +20,7 @@
       "valid_citation_ids": 3,
       "total_citation_ids": 3,
       "citation_id_valid_rate": 1.0,
-      "latency_ms": 18.488,
+      "latency_ms": 14.384,
       "answer_mode": "offline"
     },
     {
@@ -37,7 +37,7 @@
       "valid_citation_ids": 3,
       "total_citation_ids": 3,
       "citation_id_valid_rate": 1.0,
-      "latency_ms": 18.272,
+      "latency_ms": 13.799,
       "answer_mode": "offline"
     },
     {
@@ -53,7 +53,7 @@
       "valid_citation_ids": 3,
       "total_citation_ids": 3,
       "citation_id_valid_rate": 1.0,
-      "latency_ms": 18.619,
+      "latency_ms": 13.719,
       "answer_mode": "offline"
     },
     {
@@ -69,7 +69,7 @@
       "valid_citation_ids": 3,
       "total_citation_ids": 3,
       "citation_id_valid_rate": 1.0,
-      "latency_ms": 18.339,
+      "latency_ms": 14.118,
       "answer_mode": "offline"
     },
     {
@@ -85,7 +85,7 @@
       "valid_citation_ids": 2,
       "total_citation_ids": 2,
       "citation_id_valid_rate": 1.0,
-      "latency_ms": 18.347,
+      "latency_ms": 13.871,
       "answer_mode": "offline"
     },
     {
@@ -101,7 +101,105 @@
       "valid_citation_ids": 3,
       "total_citation_ids": 3,
       "citation_id_valid_rate": 1.0,
-      "latency_ms": 18.123,
+      "latency_ms": 13.96,
+      "answer_mode": "offline"
+    },
+    {
+      "question": "国内出差的餐食补贴按什么标准发放？",
+      "expected_sources": [
+        "travel_policy.txt"
+      ],
+      "retrieved_sources": [
+        "travel_policy.txt"
+      ],
+      "recall_at_k": 1.0,
+      "reciprocal_rank": 1.0,
+      "valid_citation_ids": 3,
+      "total_citation_ids": 3,
+      "citation_id_valid_rate": 1.0,
+      "latency_ms": 14.138,
+      "answer_mode": "offline"
+    },
+    {
+      "question": "国际出差需要提前多少天申请，由谁审批？",
+      "expected_sources": [
+        "travel_policy.txt"
+      ],
+      "retrieved_sources": [
+        "travel_policy.txt",
+        "remote_work.txt"
+      ],
+      "recall_at_k": 1.0,
+      "reciprocal_rank": 1.0,
+      "valid_citation_ids": 2,
+      "total_citation_ids": 2,
+      "citation_id_valid_rate": 1.0,
+      "latency_ms": 14.083,
+      "answer_mode": "offline"
+    },
+    {
+      "question": "哪些岗位不适合常规远程办公？",
+      "expected_sources": [
+        "remote_work.txt"
+      ],
+      "retrieved_sources": [
+        "remote_work.txt"
+      ],
+      "recall_at_k": 1.0,
+      "reciprocal_rank": 1.0,
+      "valid_citation_ids": 3,
+      "total_citation_ids": 3,
+      "citation_id_valid_rate": 1.0,
+      "latency_ms": 14.26,
+      "answer_mode": "offline"
+    },
+    {
+      "question": "远程办公的绩效评价会以在线时长为标准吗？",
+      "expected_sources": [
+        "remote_work.txt"
+      ],
+      "retrieved_sources": [
+        "remote_work.txt"
+      ],
+      "recall_at_k": 1.0,
+      "reciprocal_rank": 1.0,
+      "valid_citation_ids": 3,
+      "total_citation_ids": 3,
+      "citation_id_valid_rate": 1.0,
+      "latency_ms": 14.041,
+      "answer_mode": "offline"
+    },
+    {
+      "question": "公司账号密码的长度和存储有什么要求？",
+      "expected_sources": [
+        "security_baseline.txt"
+      ],
+      "retrieved_sources": [
+        "security_baseline.txt",
+        "remote_work.txt"
+      ],
+      "recall_at_k": 1.0,
+      "reciprocal_rank": 1.0,
+      "valid_citation_ids": 3,
+      "total_citation_ids": 3,
+      "citation_id_valid_rate": 1.0,
+      "latency_ms": 13.909,
+      "answer_mode": "offline"
+    },
+    {
+      "question": "已经误点了钓鱼邮件里的链接应该怎么办？",
+      "expected_sources": [
+        "security_baseline.txt"
+      ],
+      "retrieved_sources": [
+        "security_baseline.txt"
+      ],
+      "recall_at_k": 1.0,
+      "reciprocal_rank": 1.0,
+      "valid_citation_ids": 3,
+      "total_citation_ids": 3,
+      "citation_id_valid_rate": 1.0,
+      "latency_ms": 13.814,
       "answer_mode": "offline"
     }
   ]

@@ -18,7 +18,7 @@ TXT/MD 文档 → 字符偏移分块 → BM25 + 哈希 n-gram 向量 → RRF 融
 ```bash
 python -m pip install -r requirements.txt
 
-# 离线演示：导入样例文档、回答三个问题、运行 6 条金标评测
+# 离线演示：导入样例文档、回答三个问题、运行 12 条金标评测
 python demo.py --eval-output artifacts/evaluation.json
 
 # 启动 Web UI 与 API
@@ -52,14 +52,14 @@ python -m app.api --port 8001
 
 ## 评测结果
 
-仓库内 `artifacts/evaluation.json` 由 `python demo.py --eval-output artifacts/evaluation.json` 生成，演示集为 3 篇文档、13 个分块、6 条金标问题：
+仓库内 `artifacts/evaluation.json` 由 `python demo.py --eval-output artifacts/evaluation.json` 生成，演示集为 3 篇文档、13 个分块、12 条金标问题（每篇文档 4 条，覆盖不同问法与同义改写）：
 
 | 指标 | 值 | 口径 |
 | --- | --- | --- |
 | Recall@3 | 1.0 | 期望来源是否出现在前 3 条检索结果 |
 | MRR | 1.0 | 首个正确来源排名的倒数均值 |
 | 引用编号合法率 | 1.0 | 回答中的引用编号是否都指向本次检索结果 |
-| 平均延迟 | ≈18 ms | 本机离线检索加回答，随运行环境浮动 |
+| 平均延迟 | ≈14 ms | 本机离线检索加回答，随运行环境浮动 |
 
 这些数字只用于验证链路正确性。语料很小、问题由同一批文档构造，不能代表生产知识库的召回效果。
 
