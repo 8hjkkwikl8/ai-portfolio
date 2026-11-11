@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>InsightRAG · 企业知识库检索</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17251f;
+      --muted: #637168;
+      --line: #dce5df;
+      --paper: #ffffff;
+      --wash: #f4f7f5;
+      --green: #176b4d;
+      --green-dark: #0d5139;
+      --green-soft: #e7f3ed;
+      --amber: #8b5d13;
+      --shadow: 0 12px 34px rgba(25, 55, 41, .07);
+      font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--wash); line-height: 1.65; }
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: wait; opacity: .58; }
+    .container { width: min(1160px, calc(100% - 40px)); margin: 0 auto; }
+    .topbar { background: rgba(255,255,255,.94); border-bottom: 1px solid var(--line); }
+    .topbar-inner { min-height: 70px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 750; letter-spacing: -.02em; }
+    .brand-mark { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 10px; color: white; background: var(--green); font-size: 13px; letter-spacing: .04em; }
+    .status { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #2e9a6d; box-shadow: 0 0 0 4px #e5f3ec; }
+    .hero { padding: 48px 0 30px; display: grid; grid-template-columns: 1.5fr 1fr; gap: 36px; align-items: end; }
+    .eyebrow { color: var(--green); font-size: 12px; font-weight: 750; letter-spacing: .16em; text-transform: uppercase; }
+    h1 { margin: 8px 0 10px; font-size: clamp(28px, 4vw, 43px); line-height: 1.2; letter-spacing: -.04em; }
+    .hero p { margin: 0; color: var(--muted); max-width: 680px; }
+    .hero-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+    .badge { padding: 4px 10px; border-radius: 99px; background: var(--green-soft); color: var(--green-dark); font-size: 12px; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--paper); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+    .stat { padding: 18px; text-align: center; border-right: 1px solid var(--line); }
+    .stat:last-child { border: 0; }
+    .stat-value { display: block; font-size: 25px; font-weight: 750; font-variant-numeric: tabular-nums; }
+    .stat-label { color: var(--muted); font-size: 12px; }
+    .workspace { display: grid; grid-template-columns: .9fr 1.1fr; gap: 20px; align-items: start; }
+    .card { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 24px; box-shadow: var(--shadow); margin-bottom: 20px; }
+    .card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+    h2 { margin: 0; font-size: 18px; letter-spacing: -.02em; }
+    h3 { margin: 0; font-size: 15px; }
+    .subtitle { color: var(--muted); font-size: 13px; margin: 4px 0 0; }
+    .step { color: var(--green); background: var(--green-soft); border-radius: 8px; padding: 3px 8px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+    label { display: block; font-size: 13px; font-weight: 650; margin: 14px 0 6px; }
+    input, textarea, select { width: 100%; color: var(--ink); background: #fbfcfb; border: 1px solid #cfdad3; border-radius: 9px; padding: 10px 12px; outline: none; transition: border-color .15s, box-shadow .15s; }
+    input:focus, textarea:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(23,107,77,.1); }
+    textarea { resize: vertical; min-height: 110px; }
+    #sourceInput { min-height: auto; }
+    #documentInput { min-height: 164px; }
+    .hint { color: var(--muted); font-size: 12px; margin-top: 7px; }
+    .button-row { display: flex; align-items: center; gap: 12px; margin-top: 18px; }
+    .primary { border: 0; border-radius: 9px; padding: 10px 18px; color: white; background: var(--green); font-weight: 650; }
+    .primary:hover { background: var(--green-dark); }
+    .secondary { border: 1px solid #bdcec4; border-radius: 9px; padding: 9px 16px; color: var(--green-dark); background: white; font-weight: 650; }
+    .secondary:hover { background: var(--green-soft); }
+    .inline-fields { display: grid; grid-template-columns: 110px 1fr; gap: 12px; align-items: end; }
+    .check { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; min-height: 42px; }
+    .check input { width: 16px; height: 16px; accent-color: var(--green); }
+    .message { min-height: 22px; font-size: 12px; color: var(--green-dark); }
+    .message.error { color: #a13c35; }
+    .answer-card { border-top: 3px solid var(--green); }
+    .answer-meta { display: flex; flex-wrap: wrap; gap: 8px; color: var(--muted); font-size: 12px; }
+    .mode-pill { color: var(--green-dark); background: var(--green-soft); padding: 2px 8px; border-radius: 99px; }
+    #answerText { white-space: pre-wrap; margin: 18px 0; font-size: 16px; line-height: 1.85; }
+    .warning { padding: 10px 12px; background: #fff7e8; color: var(--amber); border-radius: 8px; font-size: 12px; margin-bottom: 14px; }
+    .sources-head { display: flex; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 16px; margin-top: 20px; }
+    .source-list { display: grid; gap: 10px; margin-top: 12px; }
+    .source-item { border: 1px solid var(--line); border-radius: 10px; padding: 13px 14px; background: #fbfcfb; }
+    .source-title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; }
+    .citation { display: inline-grid; place-items: center; min-width: 27px; height: 24px; border-radius: 6px; background: var(--green); color: white; font-size: 12px; }
+    .source-meta { color: var(--muted); font-size: 11px; font-weight: 400; }
+    .source-snippet { color: #4c5a51; font-size: 13px; margin-top: 7px; }
+    .empty { color: var(--muted); padding: 16px 0; font-size: 13px; }
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .metric { border: 1px solid var(--line); background: #fbfcfb; border-radius: 10px; padding: 15px; }
+    .metric strong { display: block; font-size: 22px; font-variant-numeric: tabular-nums; }
+    .metric span { color: var(--muted); font-size: 12px; }
+    .eval-table { width: 100%; border-collapse: collapse; margin-top: 18px; font-size: 12px; }
+    .eval-table th, .eval-table td { text-align: left; vertical-align: top; padding: 9px; border-bottom: 1px solid var(--line); }
+    .eval-table th { color: var(--muted); font-weight: 600; }
+    .table-wrap { overflow-x: auto; }
+    footer { color: var(--muted); font-size: 12px; padding: 10px 0 36px; display: flex; justify-content: space-between; gap: 20px; }
+    [hidden] { display: none !important; }
+    @media (max-width: 820px) {
+      .hero, .workspace { grid-template-columns: 1fr; }
+      .hero { padding-top: 32px; gap: 22px; }
+      .metrics { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 520px) {
+      .container { width: min(100% - 24px, 1160px); }
+      .card { padding: 18px; }
+      .inline-fields { grid-template-columns: 1fr; }
+      .topbar-inner { min-height: 62px; }
+      .status { font-size: 11px; }
+      footer { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <div class="brand"><span class="brand-mark">IR</span><span>InsightRAG</span></div>
+      <div class="status"><span class="status-dot"></span><span id="healthText">正在连接本地服务</span></div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div>
+        <div class="eyebrow">Traceable enterprise knowledge</div>
+        <h1>让企业知识，回答有据。</h1>
+        <p>面向中文企业文档的轻量混合检索。每条回答都回到具体文档、分块和原文位置；无证据时明确说不知道。</p>
+        <div class="hero-badges">
+          <span class="badge">BM25</span><span class="badge">轻量哈希 n-gram 向量</span><span class="badge">RRF 融合</span><span class="badge">离线优先</span>
+        </div>
+      </div>
+      <div class="stats" aria-label="知识库统计">
+        <div class="stat"><strong class="stat-value" id="documentCount">—</strong><span class="stat-label">文档</span></div>
+        <div class="stat"><strong class="stat-value" id="chunkCount">—</strong><span class="stat-label">分块</span></div>
+        <div class="stat"><strong class="stat-value" id="characterCount">—</strong><span class="stat-label">字符</span></div>
+      </div>
+    </section>
+
+    <div class="workspace">
+      <section class="card">
+        <div class="card-head"><div><h2>导入知识</h2><p class="subtitle">粘贴 UTF-8 文本，不读取服务器任意路径</p></div><span class="step">01 构建</span></div>
+        <form id="ingestForm">
+          <label for="sourceInput">来源标识</label>
+          <input id="sourceInput" value="my_policy.txt" maxlength="200" required>
+          <div class="hint">相同来源再次导入会整体替换旧分块。</div>
+          <label for="documentInput">文档内容</label>
+          <textarea id="documentInput" placeholder="粘贴公司制度、产品手册或常见问题…" required></textarea>
+          <div class="button-row"><button class="secondary" id="ingestButton" type="submit">导入并索引</button><span class="message" id="ingestMessage"></span></div>
+        </form>
+      </section>
+
+      <section class="card">
+        <div class="card-head"><div><h2>向知识库提问</h2><p class="subtitle">检索仅使用当前 SQLite 库内证据</p></div><span class="step">02 问答</span></div>
+        <form id="queryForm">
+          <label for="questionInput">问题</label>
+          <textarea id="questionInput" required>差旅住宿标准和报销时限是什么？</textarea>
+          <div class="inline-fields">
+            <div><label for="topKInput">返回块数</label><select id="topKInput"><option>3</option><option selected>5</option><option>8</option></select></div>
+            <label class="check"><input id="onlineInput" type="checkbox">使用 OpenAI 兼容生成；未配置或失败时自动回退离线摘要</label>
+          </div>
+          <div class="button-row"><button class="primary" id="queryButton" type="submit">检索并回答</button><span class="message" id="queryMessage"></span></div>
+          <div class="hint">快捷键：Ctrl / ⌘ + Enter。哈希向量不是神经嵌入，不依赖外部模型。</div>
+        </form>
+      </section>
+    </div>
+
+    <section class="card answer-card" id="answerCard" hidden>
+      <div class="card-head"><div><h2>可追溯回答</h2><p class="subtitle" id="answerQuestion"></p></div><div class="answer-meta"><span class="mode-pill" id="answerMode"></span><span id="answerLatency"></span></div></div>
+      <div class="warning" id="answerWarning" hidden></div>
+      <div id="answerText"></div>
+      <div class="sources-head"><h3>引用证据</h3><span class="hint" id="sourceCount"></span></div>
+      <div class="source-list" id="sourceList"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><div><h2>金标评测</h2><p class="subtitle">使用 data/eval.jsonl，固定离线回答以复现结果</p></div><span class="step">03 验证</span></div>
+      <div class="button-row" style="margin:0 0 18px"><button class="secondary" id="evaluateButton" type="button">运行评测</button><span class="message" id="evaluateMessage"></span></div>
+      <div id="evaluationResult" hidden>
+        <div class="metrics">
+          <div class="metric"><strong id="recallMetric">—</strong><span>Recall@k</span></div>
+          <div class="metric"><strong id="mrrMetric">—</strong><span>MRR</span></div>
+          <div class="metric"><strong id="citationMetric">—</strong><span>引用编号合法率（非语义忠实度）</span></div>
+          <div class="metric"><strong id="latencyMetric">—</strong><span>平均延迟</span></div>
+        </div>
+        <div class="table-wrap"><table class="eval-table"><thead><tr><th>问题</th><th>检索来源</th><th>Recall</th><th>倒数排名</th></tr></thead><tbody id="evaluationRows"></tbody></table></div>
+      </div>
+    </section>
+
+    <footer><span>InsightRAG · SQLite 持久化 · 无外部前端资源</span><span id="methodText">证据可回放至原始字符偏移</span></footer>
+  </main>
+
+  <script>
+    const byId = id => document.getElementById(id);
+    const percent = value => value == null ? "N/A" : `${(Number(value) * 100).toFixed(1)}%`;
+
+    async function api(path, options = {}) {
+      const response = await fetch(path, {
+        ...options,
+        headers: {"Content-Type": "application/json", ...(options.headers || {})}
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        const detail = typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail || data);
+        throw new Error(detail);
+      }
+      return data;
+    }
+
+    function setMessage(id, text, isError = false) {
+      const node = byId(id);
+      node.textContent = text;
+      node.classList.toggle("error", isError);
+    }
+
+    async function refreshStats() {
+      try {
+        const data = await api("/api/stats");
+        byId("documentCount").textContent = data.documents;
+        byId("chunkCount").textContent = data.chunks;
+        byId("characterCount").textContent = data.characters.toLocaleString("zh-CN");
+        byId("methodText").textContent = data.retrieval;
+        byId("healthText").textContent = data.online_configured ? "服务正常 · 已配置在线生成" : "服务正常 · 离线模式可用";
+      } catch (error) {
+        byId("healthText").textContent = "服务连接失败";
+        setMessage("queryMessage", error.message, true);
+      }
+    }
+
+    byId("ingestForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      const button = byId("ingestButton");
+      button.disabled = true;
+      setMessage("ingestMessage", "正在构建索引…");
+      try {
+        const data = await api("/api/ingest", {
+          method: "POST",
+          body: JSON.stringify({source: byId("sourceInput").value, content: byId("documentInput").value})
+        });
+        setMessage("ingestMessage", `${data.replaced ? "已替换" : "已导入"} · ${data.chunks} 块`);
+        byId("documentInput").value = "";
+        await refreshStats();
+      } catch (error) {
+        setMessage("ingestMessage", error.message, true);
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    function addTextElement(parent, tag, className, text) {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      node.textContent = text;
+      parent.appendChild(node);
+      return node;
+    }
+
+    function renderAnswer(data) {
+      byId("answerCard").hidden = false;
+      byId("answerQuestion").textContent = data.question;
+      byId("answerMode").textContent = data.mode_label;
+      byId("answerLatency").textContent = `${data.latency_ms} ms · 检索 ${data.results.length} 块`;
+      byId("answerText").textContent = data.answer;
+      const warning = byId("answerWarning");
+      warning.hidden = !data.warning;
+      warning.textContent = data.warning || "";
+      byId("sourceCount").textContent = `${data.sources.length} 条引用证据`;
+      const list = byId("sourceList");
+      list.replaceChildren();
+      if (!data.sources.length) {
+        addTextElement(list, "div", "empty", "没有可展示的证据。系统不会编造来源。");
+        return;
+      }
+      data.sources.forEach(source => {
+        const item = document.createElement("article");
+        item.className = "source-item";
+        const title = document.createElement("div");
+        title.className = "source-title";
+        addTextElement(title, "span", "citation", `[${source.citation}]`);
+        addTextElement(title, "span", "", source.source);
+        addTextElement(title, "span", "source-meta", `${source.chunk_id} · 字符 ${source.start}–${source.end} · RRF ${source.score}`);
+        item.appendChild(title);
+        addTextElement(item, "div", "source-snippet", source.snippet);
+        list.appendChild(item);
+      });
+    }
+
+    async function ask() {
+      const button = byId("queryButton");
+      button.disabled = true;
+      setMessage("queryMessage", "正在检索与抽取证据…");
+      try {
+        const data = await api("/api/query", {
+          method: "POST",
+          body: JSON.stringify({
+            question: byId("questionInput").value,
+            top_k: Number(byId("topKInput").value),
+            online: byId("onlineInput").checked
+          })
+        });
+        renderAnswer(data);
+        setMessage("queryMessage", "完成");
+      } catch (error) {
+        setMessage("queryMessage", error.message, true);
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    byId("queryForm").addEventListener("submit", event => { event.preventDefault(); ask(); });
+    byId("questionInput").addEventListener("keydown", event => {
+      if ((event.ctrlKey || event.metaKey) && event.key === "Enter") { event.preventDefault(); ask(); }
+    });
+
+    byId("evaluateButton").addEventListener("click", async () => {
+      const button = byId("evaluateButton");
+      button.disabled = true;
+      setMessage("evaluateMessage", "正在逐条运行金标…");
+      try {
+        const data = await api("/api/evaluate", {method: "POST", body: JSON.stringify({top_k: 3})});
+        byId("evaluationResult").hidden = false;
+        byId("recallMetric").textContent = percent(data.recall_at_k);
+        byId("mrrMetric").textContent = Number(data.mrr).toFixed(3);
+        byId("citationMetric").textContent = percent(data.citation_id_valid_rate);
+        byId("latencyMetric").textContent = `${data.average_latency_ms} ms`;
+        const rows = byId("evaluationRows");
+        rows.replaceChildren();
+        data.details.forEach(detail => {
+          const row = document.createElement("tr");
+          [detail.question, detail.retrieved_sources.join("、") || "无", percent(detail.recall_at_k), Number(detail.reciprocal_rank).toFixed(3)].forEach(value => {
+            addTextElement(row, "td", "", value);
+          });
+          rows.appendChild(row);
+        });
+        setMessage("evaluateMessage", `已完成 ${data.cases} 条 · k=${data.k}`);
+      } catch (error) {
+        setMessage("evaluateMessage", error.message, true);
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    refreshStats();
+  </script>
+</body>
+</html>

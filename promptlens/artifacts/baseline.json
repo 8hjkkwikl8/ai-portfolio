@@ -1,0 +1,764 @@
+{
+  "by_tag": {
+    "一般评价": {
+      "count": 1,
+      "failed": 0,
+      "metrics": {
+        "contains": {
+          "correct": 1,
+          "evaluated": 1,
+          "mean": 1.0
+        },
+        "exact_match": {
+          "correct": 1,
+          "evaluated": 1,
+          "mean": 1.0
+        },
+        "regex": {
+          "correct": 1,
+          "evaluated": 1,
+          "mean": 1.0
+        }
+      },
+      "succeeded": 1
+    },
+    "产品功能": {
+      "count": 2,
+      "failed": 0,
+      "metrics": {
+        "contains": {
+          "correct": 0,
+          "evaluated": 2,
+          "mean": 0.0
+        },
+        "exact_match": {
+          "correct": 0,
+          "evaluated": 2,
+          "mean": 0.0
+        },
+        "regex": {
+          "correct": 2,
+          "evaluated": 2,
+          "mean": 1.0
+        }
+      },
+      "succeeded": 2
+    },
+    "价格": {
+      "count": 1,
+      "failed": 0,
+      "metrics": {
+        "contains": {
+          "correct": 0,
+          "evaluated": 1,
+          "mean": 0.0
+        },
+        "exact_match": {
+          "correct": 0,
+          "evaluated": 1,
+          "mean": 0.0
+        },
+        "regex": {
+          "correct": 1,
+          "evaluated": 1,
+          "mean": 1.0
+        }
+      },
+      "succeeded": 1
+    },
+    "关键词歧义": {
+      "count": 2,
+      "failed": 0,
+      "metrics": {
+        "contains": {
+          "correct": 0,
+          "evaluated": 2,
+          "mean": 0.0
+        },
+        "exact_match": {
+          "correct": 0,
+          "evaluated": 2,
+          "mean": 0.0
+        },
+        "regex": {
+          "correct": 0,
+          "evaluated": 2,
+          "mean": 0.0
+        }
+      },
+      "succeeded": 2
+    },
+    "其他": {
+      "count": 1,
+      "failed": 0,
+      "metrics": {
+        "contains": {
+          "correct": 1,
+          "evaluated": 1,
+          "mean": 1.0
+        },
+        "exact_match": {
+          "correct": 1,
+          "evaluated": 1,
+          "mean": 1.0
+        },
+        "regex": {
+          "correct": 1,
+          "evaluated": 1,
+          "mean": 1.0
+        }
+      },
+      "succeeded": 1
+    },
+    "咨询": {
+      "count": 4,
+      "failed": 0,
+      "metrics": {
+        "contains": {
+          "correct": 0,
+          "evaluated": 4,
+          "mean": 0.0
+        },
+        "exact_match": {
+          "correct": 0,
+          "evaluated": 4,
+          "mean": 0.0
+        },
+        "regex": {
+          "correct": 3,
+          "evaluated": 4,
+          "mean": 0.75
+        }
+      },
+      "succeeded": 4
+    },
+    "客服": {
+      "count": 1,
+      "failed": 0,
+      "metrics": {
+        "contains": {
+          "correct": 0,
+          "evaluated": 1,
+          "mean": 0.0
+        },
+        "exact_match": {
+          "correct": 0,
+          "evaluated": 1,
+          "mean": 0.0
+        },
+        "regex": {
+          "correct": 1,
+          "evaluated": 1,
+          "mean": 1.0
+        }
+      },
+      "succeeded": 1
+    },
+    "常规": {
+      "count": 1,
+      "failed": 0,
+      "metrics": {
+        "contains": {
+          "correct": 0,
+          "evaluated": 1,
+          "mean": 0.0
+        },
+        "exact_match": {
+          "correct": 0,
+          "evaluated": 1,
+          "mean": 0.0
+        },
+        "regex": {
+          "correct": 1,
+          "evaluated": 1,
+          "mean": 1.0
+        }
+      },
+      "succeeded": 1
+    },
+    "建议": {
+      "count": 4,
+      "failed": 0,
+      "metrics": {
+        "contains": {
+          "correct": 0,
+          "evaluated": 4,
+          "mean": 0.0
+        },
+        "exact_match": {
+          "correct": 0,
+          "evaluated": 4,
+          "mean": 0.0
+        },
+        "regex": {
+          "correct": 2,
+          "evaluated": 4,
+          "mean": 0.5
+        }
+      },
+      "succeeded": 4
+    },
+    "投诉": {
+      "count": 5,
+      "failed": 0,
+      "metrics": {
+        "contains": {
+          "correct": 0,
+          "evaluated": 5,
+          "mean": 0.0
+        },
+        "exact_match": {
+          "correct": 0,
+          "evaluated": 5,
+          "mean": 0.0
+        },
+        "regex": {
+          "correct": 5,
+          "evaluated": 5,
+          "mean": 1.0
+        }
+      },
+      "succeeded": 5
+    },
+    "物流": {
+      "count": 2,
+      "failed": 0,
+      "metrics": {
+        "contains": {
+          "correct": 0,
+          "evaluated": 2,
+          "mean": 0.0
+        },
+        "exact_match": {
+          "correct": 0,
+          "evaluated": 2,
+          "mean": 0.0
+        },
+        "regex": {
+          "correct": 2,
+          "evaluated": 2,
+          "mean": 1.0
+        }
+      },
+      "succeeded": 2
+    },
+    "理由泛化": {
+      "count": 1,
+      "failed": 0,
+      "metrics": {
+        "contains": {
+          "correct": 0,
+          "evaluated": 1,
+          "mean": 0.0
+        },
+        "exact_match": {
+          "correct": 0,
+          "evaluated": 1,
+          "mean": 0.0
+        },
+        "regex": {
+          "correct": 1,
+          "evaluated": 1,
+          "mean": 1.0
+        }
+      },
+      "succeeded": 1
+    },
+    "疑问词干扰": {
+      "count": 2,
+      "failed": 0,
+      "metrics": {
+        "contains": {
+          "correct": 0,
+          "evaluated": 2,
+          "mean": 0.0
+        },
+        "exact_match": {
+          "correct": 0,
+          "evaluated": 2,
+          "mean": 0.0
+        },
+        "regex": {
+          "correct": 1,
+          "evaluated": 2,
+          "mean": 0.5
+        }
+      },
+      "succeeded": 2
+    },
+    "稳定性": {
+      "count": 1,
+      "failed": 0,
+      "metrics": {
+        "contains": {
+          "correct": 0,
+          "evaluated": 1,
+          "mean": 0.0
+        },
+        "exact_match": {
+          "correct": 0,
+          "evaluated": 1,
+          "mean": 0.0
+        },
+        "regex": {
+          "correct": 1,
+          "evaluated": 1,
+          "mean": 1.0
+        }
+      },
+      "succeeded": 1
+    },
+    "订单": {
+      "count": 1,
+      "failed": 0,
+      "metrics": {
+        "contains": {
+          "correct": 0,
+          "evaluated": 1,
+          "mean": 0.0
+        },
+        "exact_match": {
+          "correct": 0,
+          "evaluated": 1,
+          "mean": 0.0
+        },
+        "regex": {
+          "correct": 1,
+          "evaluated": 1,
+          "mean": 1.0
+        }
+      },
+      "succeeded": 1
+    }
+  },
+  "created_at": "2026-11-11T05:25:48Z",
+  "manifest": {
+    "created_at": "2026-11-11T05:25:48Z",
+    "dataset": {
+      "items": 14,
+      "path": "feedback.jsonl",
+      "sha256": "5837588c00a0a0d848b6b815768b6dc769a797d2fa3e9e970fe1d9aba61a2869"
+    },
+    "execution": {
+      "concurrency": 1,
+      "max_retries": 2,
+      "retry_backoff_seconds": 0.05,
+      "serial_reproducible": true,
+      "timeout_seconds": 2.0
+    },
+    "model": {
+      "is_mock": true,
+      "name": "offline-feedback-rules-v1",
+      "notice": "离线确定性规则模拟，未调用真实模型",
+      "parameters": {
+        "max_tokens": 128,
+        "seed": 42,
+        "temperature": 0
+      },
+      "provider": "mock"
+    },
+    "prompt": {
+      "description": "基础分类指令与统一输出格式",
+      "name": "feedback-classifier",
+      "template": "你是用户反馈分类助手。请将用户反馈分类为 咨询、投诉、建议、其他，并输出简短理由。\n输出格式：类别｜理由\n只输出一行，不要解释分类过程。\n\n用户反馈：\n${input}\n",
+      "version_id": "p_6764c526720c1ab0089ef693c6472983aea73d9f98e4de230381ea6d9de55ac2"
+    }
+  },
+  "name": "反馈分类-v1-基础指令",
+  "records": [
+    {
+      "attempts": 1,
+      "error": null,
+      "estimated_tokens": {
+        "completion": 3,
+        "is_estimate": true,
+        "method": "ceil(Unicode字符数/4)，仅为估算",
+        "prompt": 22,
+        "total": 25
+      },
+      "expected": "咨询｜询问发货时间",
+      "id": "ship-time",
+      "input": "请问订单一般多久发货？",
+      "latency_ms": 0.0,
+      "metrics": {
+        "contains": 0.0,
+        "exact_match": 0.0,
+        "regex": 1.0
+      },
+      "output": "咨询｜用户提出疑问",
+      "pattern": "^咨询｜.+$",
+      "tags": [
+        "咨询",
+        "常规"
+      ]
+    },
+    {
+      "attempts": 1,
+      "error": null,
+      "estimated_tokens": {
+        "completion": 3,
+        "is_estimate": true,
+        "method": "ceil(Unicode字符数/4)，仅为估算",
+        "prompt": 23,
+        "total": 26
+      },
+      "expected": "投诉｜商品到货损坏",
+      "id": "broken-screen",
+      "input": "收到的手机屏幕碎了，怎么处理？",
+      "latency_ms": 0.0,
+      "metrics": {
+        "contains": 0.0,
+        "exact_match": 0.0,
+        "regex": 1.0
+      },
+      "output": "投诉｜用户表达不满",
+      "pattern": "^投诉｜.+$",
+      "tags": [
+        "投诉",
+        "疑问词干扰"
+      ]
+    },
+    {
+      "attempts": 1,
+      "error": null,
+      "estimated_tokens": {
+        "completion": 3,
+        "is_estimate": true,
+        "method": "ceil(Unicode字符数/4)，仅为估算",
+        "prompt": 23,
+        "total": 26
+      },
+      "expected": "投诉｜物流迟迟未送达",
+      "id": "slow-delivery",
+      "input": "包裹十天了还没到，太慢了。",
+      "latency_ms": 0.0,
+      "metrics": {
+        "contains": 0.0,
+        "exact_match": 0.0,
+        "regex": 1.0
+      },
+      "output": "投诉｜用户表达不满",
+      "pattern": "^投诉｜.+$",
+      "tags": [
+        "投诉",
+        "物流"
+      ]
+    },
+    {
+      "attempts": 1,
+      "error": null,
+      "estimated_tokens": {
+        "completion": 3,
+        "is_estimate": true,
+        "method": "ceil(Unicode字符数/4)，仅为估算",
+        "prompt": 23,
+        "total": 26
+      },
+      "expected": "建议｜增加深色模式",
+      "id": "dark-mode",
+      "input": "建议App增加深色模式。",
+      "latency_ms": 0.0,
+      "metrics": {
+        "contains": 0.0,
+        "exact_match": 0.0,
+        "regex": 1.0
+      },
+      "output": "建议｜用户提出建议",
+      "pattern": "^建议｜.+$",
+      "tags": [
+        "产品功能",
+        "建议"
+      ]
+    },
+    {
+      "attempts": 1,
+      "error": null,
+      "estimated_tokens": {
+        "completion": 3,
+        "is_estimate": true,
+        "method": "ceil(Unicode字符数/4)，仅为估算",
+        "prompt": 24,
+        "total": 27
+      },
+      "expected": "建议｜支持导出Excel",
+      "id": "excel-export",
+      "input": "希望能支持导出Excel，方便做账。",
+      "latency_ms": 0.0,
+      "metrics": {
+        "contains": 0.0,
+        "exact_match": 0.0,
+        "regex": 1.0
+      },
+      "output": "建议｜用户提出建议",
+      "pattern": "^建议｜.+$",
+      "tags": [
+        "产品功能",
+        "建议"
+      ]
+    },
+    {
+      "attempts": 1,
+      "error": null,
+      "estimated_tokens": {
+        "completion": 3,
+        "is_estimate": true,
+        "method": "ceil(Unicode字符数/4)，仅为估算",
+        "prompt": 22,
+        "total": 25
+      },
+      "expected": "咨询｜询问地址修改方法",
+      "id": "change-address",
+      "input": "如何修改收货地址？",
+      "latency_ms": 0.0,
+      "metrics": {
+        "contains": 0.0,
+        "exact_match": 0.0,
+        "regex": 1.0
+      },
+      "output": "咨询｜用户提出疑问",
+      "pattern": "^咨询｜.+$",
+      "tags": [
+        "咨询",
+        "订单"
+      ]
+    },
+    {
+      "attempts": 1,
+      "error": null,
+      "estimated_tokens": {
+        "completion": 3,
+        "is_estimate": true,
+        "method": "ceil(Unicode字符数/4)，仅为估算",
+        "prompt": 24,
+        "total": 27
+      },
+      "expected": "投诉｜客服未及时解决问题",
+      "id": "support-loop",
+      "input": "客服两次都说稍后处理，到现在没人解决。",
+      "latency_ms": 0.0,
+      "metrics": {
+        "contains": 0.0,
+        "exact_match": 0.0,
+        "regex": 1.0
+      },
+      "output": "投诉｜用户表达不满",
+      "pattern": "^投诉｜.+$",
+      "tags": [
+        "客服",
+        "投诉"
+      ]
+    },
+    {
+      "attempts": 1,
+      "error": null,
+      "estimated_tokens": {
+        "completion": 3,
+        "is_estimate": true,
+        "method": "ceil(Unicode字符数/4)，仅为估算",
+        "prompt": 23,
+        "total": 26
+      },
+      "expected": "建议｜提供发票抬头模板",
+      "id": "invoice-template",
+      "input": "能不能增加发票抬头模板？",
+      "latency_ms": 0.0,
+      "metrics": {
+        "contains": 0.0,
+        "exact_match": 0.0,
+        "regex": 0.0
+      },
+      "output": "咨询｜用户提出疑问",
+      "pattern": "^建议｜.+$",
+      "tags": [
+        "建议",
+        "疑问词干扰"
+      ]
+    },
+    {
+      "attempts": 1,
+      "error": null,
+      "estimated_tokens": {
+        "completion": 3,
+        "is_estimate": true,
+        "method": "ceil(Unicode字符数/4)，仅为估算",
+        "prompt": 22,
+        "total": 25
+      },
+      "expected": "其他｜无法归入以上类别",
+      "id": "color-praise",
+      "input": "这个配色挺好看的。",
+      "latency_ms": 0.0,
+      "metrics": {
+        "contains": 1.0,
+        "exact_match": 1.0,
+        "regex": 1.0
+      },
+      "output": "其他｜无法归入以上类别",
+      "pattern": "^其他｜.+$",
+      "tags": [
+        "一般评价",
+        "其他"
+      ]
+    },
+    {
+      "attempts": 1,
+      "error": null,
+      "estimated_tokens": {
+        "completion": 3,
+        "is_estimate": true,
+        "method": "ceil(Unicode字符数/4)，仅为估算",
+        "prompt": 22,
+        "total": 25
+      },
+      "expected": "投诉｜会员价格偏高",
+      "id": "membership-price",
+      "input": "你们的会员太贵了。",
+      "latency_ms": 0.0,
+      "metrics": {
+        "contains": 0.0,
+        "exact_match": 0.0,
+        "regex": 1.0
+      },
+      "output": "投诉｜用户表达不满",
+      "pattern": "^投诉｜.+$",
+      "tags": [
+        "价格",
+        "投诉"
+      ]
+    },
+    {
+      "attempts": 1,
+      "error": null,
+      "estimated_tokens": {
+        "completion": 3,
+        "is_estimate": true,
+        "method": "ceil(Unicode字符数/4)，仅为估算",
+        "prompt": 23,
+        "total": 26
+      },
+      "expected": "投诉｜应用频繁闪退",
+      "id": "app-crash",
+      "input": "界面经常闪退，重装也没用。",
+      "latency_ms": 0.0,
+      "metrics": {
+        "contains": 0.0,
+        "exact_match": 0.0,
+        "regex": 1.0
+      },
+      "output": "投诉｜用户表达不满",
+      "pattern": "^投诉｜.+$",
+      "tags": [
+        "投诉",
+        "稳定性"
+      ]
+    },
+    {
+      "attempts": 1,
+      "error": null,
+      "estimated_tokens": {
+        "completion": 3,
+        "is_estimate": true,
+        "method": "ceil(Unicode字符数/4)，仅为估算",
+        "prompt": 23,
+        "total": 26
+      },
+      "expected": "建议｜简化退款流程",
+      "id": "refund-suggestion",
+      "input": "建议退款流程更简单一些。",
+      "latency_ms": 0.0,
+      "metrics": {
+        "contains": 0.0,
+        "exact_match": 0.0,
+        "regex": 0.0
+      },
+      "output": "投诉｜用户表达不满",
+      "pattern": "^建议｜.+$",
+      "tags": [
+        "关键词歧义",
+        "建议"
+      ]
+    },
+    {
+      "attempts": 1,
+      "error": null,
+      "estimated_tokens": {
+        "completion": 3,
+        "is_estimate": true,
+        "method": "ceil(Unicode字符数/4)，仅为估算",
+        "prompt": 24,
+        "total": 27
+      },
+      "expected": "咨询｜询问退款到账时间",
+      "id": "refund-arrival",
+      "input": "已经申请退款了，想问问什么时候到账？",
+      "latency_ms": 0.0,
+      "metrics": {
+        "contains": 0.0,
+        "exact_match": 0.0,
+        "regex": 0.0
+      },
+      "output": "投诉｜用户表达不满",
+      "pattern": "^咨询｜.+$",
+      "tags": [
+        "关键词歧义",
+        "咨询"
+      ]
+    },
+    {
+      "attempts": 1,
+      "error": null,
+      "estimated_tokens": {
+        "completion": 3,
+        "is_estimate": true,
+        "method": "ceil(Unicode字符数/4)，仅为估算",
+        "prompt": 22,
+        "total": 25
+      },
+      "expected": "咨询｜询问物流单号查询方法",
+      "id": "tracking-number",
+      "input": "物流单号在哪里查看？",
+      "latency_ms": 0.0,
+      "metrics": {
+        "contains": 0.0,
+        "exact_match": 0.0,
+        "regex": 1.0
+      },
+      "output": "咨询｜用户提出疑问",
+      "pattern": "^咨询｜.+$",
+      "tags": [
+        "咨询",
+        "物流",
+        "理由泛化"
+      ]
+    }
+  ],
+  "reproducibility_hash": "faf7e8eb16273c9c958696cde5fb1eefb0ce5420cf7ec2161dd7e0750c101293",
+  "run_id": "run_2ed2ce0a90d25bb914fb",
+  "schema_version": 1,
+  "summary": {
+    "estimated_total_tokens": 362,
+    "failed": 0,
+    "metrics": {
+      "contains": {
+        "correct": 1,
+        "evaluated": 14,
+        "mean": 0.07142857142857142
+      },
+      "exact_match": {
+        "correct": 1,
+        "evaluated": 14,
+        "mean": 0.07142857142857142
+      },
+      "regex": {
+        "correct": 11,
+        "evaluated": 14,
+        "mean": 0.7857142857142857
+      }
+    },
+    "succeeded": 14,
+    "token_count_is_estimate": true,
+    "total": 14,
+    "total_latency_ms": 0.0
+  },
+  "type": "promptlens_run"
+}

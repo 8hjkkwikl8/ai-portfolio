@@ -1,0 +1,14 @@
+{"id":"ship-time","input":"请问订单一般多久发货？","expected":"咨询｜询问发货时间","tags":["咨询","常规"],"pattern":"^咨询｜.+$"}
+{"id":"broken-screen","input":"收到的手机屏幕碎了，怎么处理？","expected":"投诉｜商品到货损坏","tags":["投诉","疑问词干扰"],"pattern":"^投诉｜.+$"}
+{"id":"slow-delivery","input":"包裹十天了还没到，太慢了。","expected":"投诉｜物流迟迟未送达","tags":["投诉","物流"],"pattern":"^投诉｜.+$"}
+{"id":"dark-mode","input":"建议App增加深色模式。","expected":"建议｜增加深色模式","tags":["建议","产品功能"],"pattern":"^建议｜.+$"}
+{"id":"excel-export","input":"希望能支持导出Excel，方便做账。","expected":"建议｜支持导出Excel","tags":["建议","产品功能"],"pattern":"^建议｜.+$"}
+{"id":"change-address","input":"如何修改收货地址？","expected":"咨询｜询问地址修改方法","tags":["咨询","订单"],"pattern":"^咨询｜.+$"}
+{"id":"support-loop","input":"客服两次都说稍后处理，到现在没人解决。","expected":"投诉｜客服未及时解决问题","tags":["投诉","客服"],"pattern":"^投诉｜.+$"}
+{"id":"invoice-template","input":"能不能增加发票抬头模板？","expected":"建议｜提供发票抬头模板","tags":["建议","疑问词干扰"],"pattern":"^建议｜.+$"}
+{"id":"color-praise","input":"这个配色挺好看的。","expected":"其他｜无法归入以上类别","tags":["其他","一般评价"],"pattern":"^其他｜.+$"}
+{"id":"membership-price","input":"你们的会员太贵了。","expected":"投诉｜会员价格偏高","tags":["投诉","价格"],"pattern":"^投诉｜.+$"}
+{"id":"app-crash","input":"界面经常闪退，重装也没用。","expected":"投诉｜应用频繁闪退","tags":["投诉","稳定性"],"pattern":"^投诉｜.+$"}
+{"id":"refund-suggestion","input":"建议退款流程更简单一些。","expected":"建议｜简化退款流程","tags":["建议","关键词歧义"],"pattern":"^建议｜.+$"}
+{"id":"refund-arrival","input":"已经申请退款了，想问问什么时候到账？","expected":"咨询｜询问退款到账时间","tags":["咨询","关键词歧义"],"pattern":"^咨询｜.+$"}
+{"id":"tracking-number","input":"物流单号在哪里查看？","expected":"咨询｜询问物流单号查询方法","tags":["咨询","物流","理由泛化"],"pattern":"^咨询｜.+$"}

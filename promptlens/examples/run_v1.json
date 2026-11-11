@@ -1,0 +1,20 @@
+{
+  "name": "反馈分类-v1-基础指令",
+  "prompt_name": "feedback-classifier",
+  "prompt_description": "基础分类指令与统一输出格式",
+  "prompt_file": "prompt_v1.txt",
+  "dataset": "feedback.jsonl",
+  "provider": "mock",
+  "model": "offline-feedback-rules-v1",
+  "model_params": {
+    "temperature": 0,
+    "max_tokens": 128,
+    "seed": 42
+  },
+  "timeout_seconds": 2,
+  "max_retries": 2,
+  "retry_backoff_seconds": 0.05,
+  "concurrency": 1,
+  "output": "../artifacts/baseline.json",
+  "report": "../artifacts/baseline.html"
+}

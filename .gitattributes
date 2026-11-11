@@ -1,0 +1,20 @@
+* text=auto eol=lf
+
+*.py text
+*.md text
+*.html text
+*.json text
+*.jsonl text
+*.txt text
+*.csv text
+*.sql text
+*.toml text
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.zip binary
+*.db binary
+*.sqlite binary

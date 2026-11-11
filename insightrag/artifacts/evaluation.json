@@ -1,0 +1,108 @@
+{
+  "cases": 6,
+  "k": 3,
+  "recall_at_k": 1.0,
+  "mrr": 1.0,
+  "citation_id_valid_rate": 1.0,
+  "citation_metric_note": "仅校验引用编号合法性，不代表语义忠实度；无引用时记 N/A。",
+  "average_latency_ms": 18.365,
+  "details": [
+    {
+      "question": "国内差旅住宿标准是多少？",
+      "expected_sources": [
+        "travel_policy.txt"
+      ],
+      "retrieved_sources": [
+        "travel_policy.txt"
+      ],
+      "recall_at_k": 1.0,
+      "reciprocal_rank": 1.0,
+      "valid_citation_ids": 3,
+      "total_citation_ids": 3,
+      "citation_id_valid_rate": 1.0,
+      "latency_ms": 18.488,
+      "answer_mode": "offline"
+    },
+    {
+      "question": "差旅结束后多久内提交报销？",
+      "expected_sources": [
+        "travel_policy.txt"
+      ],
+      "retrieved_sources": [
+        "travel_policy.txt",
+        "security_baseline.txt"
+      ],
+      "recall_at_k": 1.0,
+      "reciprocal_rank": 1.0,
+      "valid_citation_ids": 3,
+      "total_citation_ids": 3,
+      "citation_id_valid_rate": 1.0,
+      "latency_ms": 18.272,
+      "answer_mode": "offline"
+    },
+    {
+      "question": "远程办公的核心协作时间段是什么？",
+      "expected_sources": [
+        "remote_work.txt"
+      ],
+      "retrieved_sources": [
+        "remote_work.txt"
+      ],
+      "recall_at_k": 1.0,
+      "reciprocal_rank": 1.0,
+      "valid_citation_ids": 3,
+      "total_citation_ids": 3,
+      "citation_id_valid_rate": 1.0,
+      "latency_ms": 18.619,
+      "answer_mode": "offline"
+    },
+    {
+      "question": "长期远程办公的设备与网络补贴如何发放？",
+      "expected_sources": [
+        "remote_work.txt"
+      ],
+      "retrieved_sources": [
+        "remote_work.txt"
+      ],
+      "recall_at_k": 1.0,
+      "reciprocal_rank": 1.0,
+      "valid_citation_ids": 3,
+      "total_citation_ids": 3,
+      "citation_id_valid_rate": 1.0,
+      "latency_ms": 18.339,
+      "answer_mode": "offline"
+    },
+    {
+      "question": "收到可疑钓鱼邮件应该怎么处理？",
+      "expected_sources": [
+        "security_baseline.txt"
+      ],
+      "retrieved_sources": [
+        "security_baseline.txt"
+      ],
+      "recall_at_k": 1.0,
+      "reciprocal_rank": 1.0,
+      "valid_citation_ids": 2,
+      "total_citation_ids": 2,
+      "citation_id_valid_rate": 1.0,
+      "latency_ms": 18.347,
+      "answer_mode": "offline"
+    },
+    {
+      "question": "发现信息泄露等安全事件需要在多久内报告？",
+      "expected_sources": [
+        "security_baseline.txt"
+      ],
+      "retrieved_sources": [
+        "security_baseline.txt"
+      ],
+      "recall_at_k": 1.0,
+      "reciprocal_rank": 1.0,
+      "valid_citation_ids": 3,
+      "total_citation_ids": 3,
+      "citation_id_valid_rate": 1.0,
+      "latency_ms": 18.123,
+      "answer_mode": "offline"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+[project]
+name = "promptlens"
+version = "1.0.0"
+description = "Offline-first prompt versioning and reproducible evaluation"
+requires-python = ">=3.13"
+dependencies = []
+
+[project.scripts]
+promptlens = "promptlens.cli:main"
+
+[tool.promptlens]
+python = "3.13"
+third_party_dependencies = false
