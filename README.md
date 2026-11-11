@@ -3,6 +3,7 @@
 ![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
 ![Tests](https://img.shields.io/badge/tests-93%20passing-176b4d)
 ![Offline](https://img.shields.io/badge/demo-offline--first-102b25)
+![CI](https://github.com/8hjkkwikl8/ai-portfolio/actions/workflows/ci.yml/badge.svg)
 
 面向 AI 应用工程师求职的作品集：**1 个检索增强生成旗舰项目 + 2 个轻量工程切面项目**。每个项目都有完整源码、确定性演示数据、自动化测试和可查看产物；默认不需要 API Key，也不把规则模拟包装成“智能”。
 
