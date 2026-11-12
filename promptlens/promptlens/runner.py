@@ -77,6 +77,61 @@ def _nonnegative_number(config: Mapping[str, Any], key: str, default: float) -> 
     return float(value)
 
 
+def parse_pricing(config: Mapping[str, Any]) -> dict[str, Any] | None:
+    """解析可选的单价配置；未配置时返回 None。
+
+    单价是实验身份的一部分：同一提示词与数据在不同单价下会产生不同的
+    成本结果，因此不能共用 run_id。价格由调用方提供，项目不内置任何
+    供应商报价。
+    """
+    raw = config.get("pricing")
+    if raw is None:
+        return None
+    if not isinstance(raw, dict):
+        raise ValueError("运行配置 pricing 必须是 JSON 对象或省略")
+    input_price = raw.get("input_per_1k_tokens")
+    output_price = raw.get("output_per_1k_tokens")
+    for key, value in (
+        ("input_per_1k_tokens", input_price),
+        ("output_per_1k_tokens", output_price),
+    ):
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:
+            raise ValueError(f"运行配置 pricing.{key} 必须是非负数")
+    currency = raw.get("currency", "USD")
+    if not isinstance(currency, str) or not currency.strip():
+        raise ValueError("运行配置 pricing.currency 必须是非空字符串")
+    label = raw.get("label", "")
+    if not isinstance(label, str):
+        raise ValueError("运行配置 pricing.label 必须是字符串")
+    return {
+        "input_per_1k_tokens": float(input_price),
+        "output_per_1k_tokens": float(output_price),
+        "currency": currency.strip().upper(),
+        "label": label,
+        "is_estimate": True,
+    }
+
+
+def estimate_cost(
+    prompt_tokens: int,
+    completion_tokens: int,
+    pricing: Mapping[str, Any] | None,
+) -> dict[str, Any] | None:
+    """按字符启发式 token 估算成本；不是供应商账单。"""
+    if pricing is None:
+        return None
+    input_cost = prompt_tokens / 1000 * float(pricing["input_per_1k_tokens"])
+    output_cost = completion_tokens / 1000 * float(pricing["output_per_1k_tokens"])
+    return {
+        "input": round(input_cost, 8),
+        "output": round(output_cost, 8),
+        "total": round(input_cost + output_cost, 8),
+        "currency": pricing["currency"],
+        "is_estimate": True,
+        "method": "按估算 token 数 × 配置单价计算，不代表供应商账单",
+    }
+
+
 def run_experiment(
     config: Mapping[str, Any],
     registry: PromptRegistry,
@@ -135,6 +190,7 @@ def run_experiment(
     except (TypeError, ValueError) as exc:
         raise ValueError(f"model_params 必须可序列化为 JSON：{exc}") from exc
 
+    pricing = parse_pricing(config)
     timeout = _nonnegative_number(config, "timeout_seconds", 10.0)
     if timeout <= 0:
         raise ValueError("timeout_seconds 必须大于 0")
@@ -157,6 +213,7 @@ def run_experiment(
         "provider": provider.name,
         "model": model,
         "model_params": parameters,
+        "pricing": pricing,
     }
     run_id = "run_" + hashlib.sha256(_canonical(identity).encode("utf-8")).hexdigest()[:20]
     max_attempts = max_retries + 1
@@ -178,6 +235,7 @@ def run_experiment(
                     "is_estimate": True,
                     "method": "ceil(Unicode字符数/4)，仅为估算",
                 },
+                "cost_estimate": estimate_cost(0, 0, pricing),
                 "attempts": 0,
                 "error": {"type": type(exc).__name__, "message": str(exc), "attempts": 0},
             }
@@ -239,6 +297,7 @@ def run_experiment(
                 "is_estimate": True,
                 "method": "ceil(Unicode字符数/4)，仅为估算",
             },
+            "cost_estimate": estimate_cost(prompt_tokens, completion_tokens, pricing),
             "attempts": attempts,
             "error": error,
         }
@@ -249,6 +308,18 @@ def run_experiment(
         with ThreadPoolExecutor(max_workers=concurrency_raw, thread_name_prefix="promptlens") as executor:
             records = list(executor.map(process, items))
 
+    estimated_total_cost = (
+        round(
+            sum(
+                record["cost_estimate"]["total"]
+                for record in records
+                if record["cost_estimate"] is not None
+            ),
+            8,
+        )
+        if pricing is not None
+        else None
+    )
     summary = {
         "total": len(records),
         "succeeded": sum(record["error"] is None for record in records),
@@ -257,6 +328,10 @@ def run_experiment(
         "estimated_total_tokens": sum(record["estimated_tokens"]["total"] for record in records),
         "token_count_is_estimate": True,
         "metrics": summarize_metrics(records),
+        "estimated_total_cost": estimated_total_cost,
+        "cost_currency": pricing["currency"] if pricing is not None else None,
+        "cost_is_estimate": pricing is not None,
+        "pricing": pricing,
     }
     reproducibility_payload = {
         "identity": identity,
@@ -267,10 +342,12 @@ def run_experiment(
                 "metrics": record["metrics"],
                 "error": record["error"],
                 "estimated_tokens": record["estimated_tokens"],
+                "cost_estimate": record["cost_estimate"],
             }
             for record in records
         ],
         "summary_metrics": summary["metrics"],
+        "estimated_total_cost": summary["estimated_total_cost"],
     }
     reproducibility_hash = hashlib.sha256(
         _canonical(reproducibility_payload).encode("utf-8")
@@ -304,6 +381,17 @@ def run_experiment(
                 "retry_backoff_seconds": backoff,
                 "concurrency": concurrency_raw,
                 "serial_reproducible": concurrency_raw == 1 and provider.is_mock,
+            },
+            "cost": {
+                "pricing": pricing,
+                "total": summary["estimated_total_cost"],
+                "currency": summary["cost_currency"],
+                "is_estimate": True,
+                "notice": (
+                    "未配置 pricing，未计算成本"
+                    if pricing is None
+                    else "按字符启发式 token 估算与原配置单价计算，不代表供应商账单"
+                ),
             },
         },
         "records": records,
@@ -403,6 +491,20 @@ def compare_runs(
         "baseline": before["reproducibility_hash"],
         "candidate": after["reproducibility_hash"],
     }
+    before_cost = before["summary"].get("estimated_total_cost")
+    after_cost = after["summary"].get("estimated_total_cost")
+    cost_comparison = {
+        "baseline": before_cost,
+        "candidate": after_cost,
+        "delta": (
+            round(after_cost - before_cost, 8)
+            if before_cost is not None and after_cost is not None
+            else None
+        ),
+        "currency": after["summary"].get("cost_currency"),
+        "is_estimate": after_cost is not None,
+        "basis": "按字符启发式 token 估算与各实验配置单价计算，不代表供应商账单",
+    }
     return {
         "schema_version": 1,
         "type": "promptlens_comparison",
@@ -430,6 +532,7 @@ def compare_runs(
             "candidate": after["summary"]["metrics"],
             "delta": _metric_delta(before["summary"], after["summary"]),
         },
+        "cost": cost_comparison,
         "by_tag": tag_comparison,
         "records": records,
     }

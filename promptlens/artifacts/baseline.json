@@ -331,9 +331,22 @@
       "succeeded": 1
     }
   },
-  "created_at": "2026-11-11T05:25:48Z",
+  "created_at": "2026-11-12T07:54:46Z",
   "manifest": {
-    "created_at": "2026-11-11T05:25:48Z",
+    "cost": {
+      "currency": "USD",
+      "is_estimate": true,
+      "notice": "按字符启发式 token 估算与原配置单价计算，不代表供应商账单",
+      "pricing": {
+        "currency": "USD",
+        "input_per_1k_tokens": 0.00015,
+        "is_estimate": true,
+        "label": "示例单价（非供应商报价）",
+        "output_per_1k_tokens": 0.0006
+      },
+      "total": 7.32e-05
+    },
+    "created_at": "2026-11-12T07:54:46Z",
     "dataset": {
       "items": 14,
       "path": "feedback.jsonl",
@@ -368,6 +381,14 @@
   "records": [
     {
       "attempts": 1,
+      "cost_estimate": {
+        "currency": "USD",
+        "input": 3.3e-06,
+        "is_estimate": true,
+        "method": "按估算 token 数 × 配置单价计算，不代表供应商账单",
+        "output": 1.8e-06,
+        "total": 5.1e-06
+      },
       "error": null,
       "estimated_tokens": {
         "completion": 3,
@@ -394,6 +415,14 @@
     },
     {
       "attempts": 1,
+      "cost_estimate": {
+        "currency": "USD",
+        "input": 3.45e-06,
+        "is_estimate": true,
+        "method": "按估算 token 数 × 配置单价计算，不代表供应商账单",
+        "output": 1.8e-06,
+        "total": 5.25e-06
+      },
       "error": null,
       "estimated_tokens": {
         "completion": 3,
@@ -420,6 +449,14 @@
     },
     {
       "attempts": 1,
+      "cost_estimate": {
+        "currency": "USD",
+        "input": 3.45e-06,
+        "is_estimate": true,
+        "method": "按估算 token 数 × 配置单价计算，不代表供应商账单",
+        "output": 1.8e-06,
+        "total": 5.25e-06
+      },
       "error": null,
       "estimated_tokens": {
         "completion": 3,
@@ -446,6 +483,14 @@
     },
     {
       "attempts": 1,
+      "cost_estimate": {
+        "currency": "USD",
+        "input": 3.45e-06,
+        "is_estimate": true,
+        "method": "按估算 token 数 × 配置单价计算，不代表供应商账单",
+        "output": 1.8e-06,
+        "total": 5.25e-06
+      },
       "error": null,
       "estimated_tokens": {
         "completion": 3,
@@ -472,6 +517,14 @@
     },
     {
       "attempts": 1,
+      "cost_estimate": {
+        "currency": "USD",
+        "input": 3.6e-06,
+        "is_estimate": true,
+        "method": "按估算 token 数 × 配置单价计算，不代表供应商账单",
+        "output": 1.8e-06,
+        "total": 5.4e-06
+      },
       "error": null,
       "estimated_tokens": {
         "completion": 3,
@@ -498,6 +551,14 @@
     },
     {
       "attempts": 1,
+      "cost_estimate": {
+        "currency": "USD",
+        "input": 3.3e-06,
+        "is_estimate": true,
+        "method": "按估算 token 数 × 配置单价计算，不代表供应商账单",
+        "output": 1.8e-06,
+        "total": 5.1e-06
+      },
       "error": null,
       "estimated_tokens": {
         "completion": 3,
@@ -524,6 +585,14 @@
     },
     {
       "attempts": 1,
+      "cost_estimate": {
+        "currency": "USD",
+        "input": 3.6e-06,
+        "is_estimate": true,
+        "method": "按估算 token 数 × 配置单价计算，不代表供应商账单",
+        "output": 1.8e-06,
+        "total": 5.4e-06
+      },
       "error": null,
       "estimated_tokens": {
         "completion": 3,
@@ -550,6 +619,14 @@
     },
     {
       "attempts": 1,
+      "cost_estimate": {
+        "currency": "USD",
+        "input": 3.45e-06,
+        "is_estimate": true,
+        "method": "按估算 token 数 × 配置单价计算，不代表供应商账单",
+        "output": 1.8e-06,
+        "total": 5.25e-06
+      },
       "error": null,
       "estimated_tokens": {
         "completion": 3,
@@ -576,6 +653,14 @@
     },
     {
       "attempts": 1,
+      "cost_estimate": {
+        "currency": "USD",
+        "input": 3.3e-06,
+        "is_estimate": true,
+        "method": "按估算 token 数 × 配置单价计算，不代表供应商账单",
+        "output": 1.8e-06,
+        "total": 5.1e-06
+      },
       "error": null,
       "estimated_tokens": {
         "completion": 3,
@@ -602,6 +687,14 @@
     },
     {
       "attempts": 1,
+      "cost_estimate": {
+        "currency": "USD",
+        "input": 3.3e-06,
+        "is_estimate": true,
+        "method": "按估算 token 数 × 配置单价计算，不代表供应商账单",
+        "output": 1.8e-06,
+        "total": 5.1e-06
+      },
       "error": null,
       "estimated_tokens": {
         "completion": 3,
@@ -628,6 +721,14 @@
     },
     {
       "attempts": 1,
+      "cost_estimate": {
+        "currency": "USD",
+        "input": 3.45e-06,
+        "is_estimate": true,
+        "method": "按估算 token 数 × 配置单价计算，不代表供应商账单",
+        "output": 1.8e-06,
+        "total": 5.25e-06
+      },
       "error": null,
       "estimated_tokens": {
         "completion": 3,
@@ -654,6 +755,14 @@
     },
     {
       "attempts": 1,
+      "cost_estimate": {
+        "currency": "USD",
+        "input": 3.45e-06,
+        "is_estimate": true,
+        "method": "按估算 token 数 × 配置单价计算，不代表供应商账单",
+        "output": 1.8e-06,
+        "total": 5.25e-06
+      },
       "error": null,
       "estimated_tokens": {
         "completion": 3,
@@ -680,6 +789,14 @@
     },
     {
       "attempts": 1,
+      "cost_estimate": {
+        "currency": "USD",
+        "input": 3.6e-06,
+        "is_estimate": true,
+        "method": "按估算 token 数 × 配置单价计算，不代表供应商账单",
+        "output": 1.8e-06,
+        "total": 5.4e-06
+      },
       "error": null,
       "estimated_tokens": {
         "completion": 3,
@@ -706,6 +823,14 @@
     },
     {
       "attempts": 1,
+      "cost_estimate": {
+        "currency": "USD",
+        "input": 3.3e-06,
+        "is_estimate": true,
+        "method": "按估算 token 数 × 配置单价计算，不代表供应商账单",
+        "output": 1.8e-06,
+        "total": 5.1e-06
+      },
       "error": null,
       "estimated_tokens": {
         "completion": 3,
@@ -732,10 +857,13 @@
       ]
     }
   ],
-  "reproducibility_hash": "faf7e8eb16273c9c958696cde5fb1eefb0ce5420cf7ec2161dd7e0750c101293",
-  "run_id": "run_2ed2ce0a90d25bb914fb",
+  "reproducibility_hash": "2bd20cb9dc2fdf0084c76512a4e83bb6c2d06f550cb83410f45d4f38f216290e",
+  "run_id": "run_453d906d772cf609da93",
   "schema_version": 1,
   "summary": {
+    "cost_currency": "USD",
+    "cost_is_estimate": true,
+    "estimated_total_cost": 7.32e-05,
     "estimated_total_tokens": 362,
     "failed": 0,
     "metrics": {
@@ -754,6 +882,13 @@
         "evaluated": 14,
         "mean": 0.7857142857142857
       }
+    },
+    "pricing": {
+      "currency": "USD",
+      "input_per_1k_tokens": 0.00015,
+      "is_estimate": true,
+      "label": "示例单价（非供应商报价）",
+      "output_per_1k_tokens": 0.0006
     },
     "succeeded": 14,
     "token_count_is_estimate": true,

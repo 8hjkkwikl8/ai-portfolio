@@ -1,8 +1,21 @@
 {
   "baseline": {
-    "created_at": "2026-11-11T05:25:48Z",
+    "created_at": "2026-11-12T07:54:46Z",
     "manifest": {
-      "created_at": "2026-11-11T05:25:48Z",
+      "cost": {
+        "currency": "USD",
+        "is_estimate": true,
+        "notice": "按字符启发式 token 估算与原配置单价计算，不代表供应商账单",
+        "pricing": {
+          "currency": "USD",
+          "input_per_1k_tokens": 0.00015,
+          "is_estimate": true,
+          "label": "示例单价（非供应商报价）",
+          "output_per_1k_tokens": 0.0006
+        },
+        "total": 7.32e-05
+      },
+      "created_at": "2026-11-12T07:54:46Z",
       "dataset": {
         "items": 14,
         "path": "feedback.jsonl",
@@ -34,9 +47,12 @@
       }
     },
     "name": "反馈分类-v1-基础指令",
-    "reproducibility_hash": "faf7e8eb16273c9c958696cde5fb1eefb0ce5420cf7ec2161dd7e0750c101293",
-    "run_id": "run_2ed2ce0a90d25bb914fb",
+    "reproducibility_hash": "2bd20cb9dc2fdf0084c76512a4e83bb6c2d06f550cb83410f45d4f38f216290e",
+    "run_id": "run_453d906d772cf609da93",
     "summary": {
+      "cost_currency": "USD",
+      "cost_is_estimate": true,
+      "estimated_total_cost": 7.32e-05,
       "estimated_total_tokens": 362,
       "failed": 0,
       "metrics": {
@@ -55,6 +71,13 @@
           "evaluated": 14,
           "mean": 0.7857142857142857
         }
+      },
+      "pricing": {
+        "currency": "USD",
+        "input_per_1k_tokens": 0.00015,
+        "is_estimate": true,
+        "label": "示例单价（非供应商报价）",
+        "output_per_1k_tokens": 0.0006
       },
       "succeeded": 14,
       "token_count_is_estimate": true,
@@ -695,9 +718,22 @@
     }
   },
   "candidate": {
-    "created_at": "2026-11-11T05:25:48Z",
+    "created_at": "2026-11-12T07:54:46Z",
     "manifest": {
-      "created_at": "2026-11-11T05:25:48Z",
+      "cost": {
+        "currency": "USD",
+        "is_estimate": true,
+        "notice": "按字符启发式 token 估算与原配置单价计算，不代表供应商账单",
+        "pricing": {
+          "currency": "USD",
+          "input_per_1k_tokens": 0.00015,
+          "is_estimate": true,
+          "label": "示例单价（非供应商报价）",
+          "output_per_1k_tokens": 0.0006
+        },
+        "total": 0.00013575
+      },
+      "created_at": "2026-11-12T07:54:46Z",
       "dataset": {
         "items": 14,
         "path": "feedback.jsonl",
@@ -729,9 +765,12 @@
       }
     },
     "name": "反馈分类-v2-意图与具体理由",
-    "reproducibility_hash": "8999a7220b2b9b3df5d7f13de79c433b6d47007cea5853153c7bc04f20f06e97",
-    "run_id": "run_a0fda5609d8ca32b7021",
+    "reproducibility_hash": "a9b47db125cb78a038063cc210af3d0d7e128b99049c789ee4474b7d8864708c",
+    "run_id": "run_4b312ce41e8290fe5186",
     "summary": {
+      "cost_currency": "USD",
+      "cost_is_estimate": true,
+      "estimated_total_cost": 0.00013575,
       "estimated_total_tokens": 779,
       "failed": 0,
       "metrics": {
@@ -751,14 +790,29 @@
           "mean": 1.0
         }
       },
+      "pricing": {
+        "currency": "USD",
+        "input_per_1k_tokens": 0.00015,
+        "is_estimate": true,
+        "label": "示例单价（非供应商报价）",
+        "output_per_1k_tokens": 0.0006
+      },
       "succeeded": 14,
       "token_count_is_estimate": true,
       "total": 14,
       "total_latency_ms": 0.0
     }
   },
-  "comparison_id": "cmp_aacf01ae0ae23d7663da",
-  "created_at": "2026-11-11T05:25:48Z",
+  "comparison_id": "cmp_26ab1f23a7b50cbd6468",
+  "cost": {
+    "baseline": 7.32e-05,
+    "basis": "按字符启发式 token 估算与各实验配置单价计算，不代表供应商账单",
+    "candidate": 0.00013575,
+    "currency": "USD",
+    "delta": 6.255e-05,
+    "is_estimate": true
+  },
+  "created_at": "2026-11-12T07:54:46Z",
   "dataset_sha256": "5837588c00a0a0d848b6b815768b6dc769a797d2fa3e9e970fe1d9aba61a2869",
   "records": [
     {

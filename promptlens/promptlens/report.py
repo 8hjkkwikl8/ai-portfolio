@@ -35,6 +35,30 @@ def _delta(value: float | None) -> str:
     return f'<span class="{css}">{value * 100:+.1f} pp</span>'
 
 
+def _money(value: float | None, currency: str | None) -> str:
+    if value is None:
+        return "—"
+    unit = currency or ""
+    return f"{value:.8f} {unit}".strip()
+
+
+def _money_delta(value: float | None, currency: str | None) -> str:
+    if value is None:
+        return '<span class="delta-zero">—</span>'
+    css = "delta-pos" if value > 0 else "delta-neg" if value < 0 else "delta-zero"
+    return f'<span class="{css}">{value:+.8f} {_e(currency or "")}</span>'
+
+
+def _cost_note(data: Mapping[str, Any]) -> str:
+    cost = data.get("cost") or {}
+    basis = cost.get("basis") or "按字符启发式 token 估算与配置单价计算，不代表供应商账单"
+    return (
+        '<div class="notice"><strong>成本为估算值：</strong>'
+        f"{_e(basis)}。token 数来自 ceil(Unicode 字符数 / 4) 的启发式估算，"
+        "单价由运行配置提供；真实账单请以供应商计量为准。</div>"
+    )
+
+
 def _layout(title: str, subtitle: str, content: str) -> str:
     return (
         "<!doctype html><html lang=\"zh-CN\"><head><meta charset=\"utf-8\">"
@@ -77,6 +101,15 @@ def _comparison_report(data: Mapping[str, Any]) -> str:
             f'<div class="metric-value">{_e(_pct(after))}</div>'
             f'<div class="metric-sub">基线 {_e(_pct(before))} · {_delta(data["summary"]["delta"][metric])}</div></div>'
         )
+    cost = data.get("cost") or {}
+    cost_currency = cost.get("currency")
+    if cost.get("is_estimate"):
+        cards.append(
+            f'<div class="card"><div class="metric-label">候选估算成本</div>'
+            f'<div class="metric-value">{_e(_money(cost.get("candidate"), cost_currency))}</div>'
+            f'<div class="metric-sub">基线 {_e(_money(cost.get("baseline"), cost_currency))} · '
+            f'{_money_delta(cost.get("delta"), cost_currency)}</div></div>'
+        )
     rows = []
     for metric in METRIC_NAMES:
         before_info = data["summary"]["baseline"][metric]
@@ -93,6 +126,19 @@ def _comparison_report(data: Mapping[str, Any]) -> str:
         '<th class="num">候选</th><th class="num">Delta（候选－基线）</th><th class="num">候选计分样本</th></tr></thead>'
         f'<tbody>{"".join(rows)}</tbody></table></div>'
     )
+    if cost.get("is_estimate"):
+        pricing = (candidate.get("manifest", {}).get("cost", {}) or {}).get("pricing") or {}
+        cost_table = (
+            '<div class="table-wrap"><table><thead><tr><th>项目</th><th class="num">基线</th>'
+            '<th class="num">候选</th><th class="num">Delta（候选－基线）</th></tr></thead><tbody>'
+            f'<tr><td>估算总成本</td><td class="num">{_e(_money(cost.get("baseline"), cost_currency))}</td>'
+            f'<td class="num">{_e(_money(cost.get("candidate"), cost_currency))}</td>'
+            f'<td class="num">{_money_delta(cost.get("delta"), cost_currency)}</td></tr>'
+            f'<tr><td>计价口径</td><td colspan="3"><code>{_e(json.dumps(pricing, ensure_ascii=False, sort_keys=True))}</code></td></tr>'
+            '</tbody></table></div>'
+        )
+    else:
+        cost_table = '<div class="notice">两个实验均未配置 <code>pricing</code>，未计算成本；配置输入/输出单价后重跑即可获得估算。</div>'
     tag_rows = []
     for tag, info in data["by_tag"].items():
         for index, metric in enumerate(METRIC_NAMES):
@@ -124,6 +170,16 @@ def _comparison_report(data: Mapping[str, Any]) -> str:
             f"{METRIC_LABELS[metric]} {_pct(record['delta'][metric]) if record['delta'][metric] is not None else '—'}"
             for metric in METRIC_NAMES
         )
+        baseline_cost = record["baseline"].get("cost_estimate")
+        candidate_cost = record["candidate"].get("cost_estimate")
+        cost_text = ""
+        if baseline_cost is not None or candidate_cost is not None:
+            cost_text = (
+                " · 估算成本 基线 "
+                f"{_money(baseline_cost['total'] if baseline_cost else None, baseline_cost['currency'] if baseline_cost else None)}"
+                " / 候选 "
+                f"{_money(candidate_cost['total'] if candidate_cost else None, candidate_cost['currency'] if candidate_cost else None)}"
+            )
         details.append(
             f'<details class="item"><summary><span class="item-title">{index:02d} · {_e(record["id"])}</span>{tags}</summary>'
             '<div class="item-body"><div class="io-grid">'
@@ -131,7 +187,7 @@ def _comparison_report(data: Mapping[str, Any]) -> str:
             f'<div class="io full"><h3>期望输出</h3><pre>{_e(record["expected"])}</pre></div>'
             f'<div class="io"><h3>基线输出 {baseline_status}</h3><pre>{_e(baseline_output) if baseline_output is not None else "（无输出）"}</pre>{baseline_error}</div>'
             f'<div class="io"><h3>候选输出 {candidate_status}</h3><pre>{_e(candidate_output) if candidate_output is not None else "（无输出）"}</pre>{candidate_error}</div>'
-            f'</div><div class="mini-metrics">逐条 Delta：{_e(delta_text)}</div></div></details>'
+            f'</div><div class="mini-metrics">逐条 Delta：{_e(delta_text)}{_e(cost_text)}</div></div></details>'
         )
     metadata = _metadata_rows(
         [
@@ -145,13 +201,20 @@ def _comparison_report(data: Mapping[str, Any]) -> str:
             ("数据 SHA256", data["dataset_sha256"], False),
             ("执行策略", json.dumps(candidate["manifest"]["execution"], ensure_ascii=False), False),
             ("Token 口径", "ceil(Unicode 字符数 / 4)，仅为估算", False),
+            (
+                "成本口径",
+                "估算：token(启发式) × 配置单价" if cost.get("is_estimate") else "未配置 pricing，未计算成本",
+                False,
+            ),
         ]
     )
     content = (
         _model_notice(candidate)
+        + (_cost_note(data) if cost.get("is_estimate") else "")
         + f'<div class="grid">{"".join(cards)}</div>'
         + f'<section><h2>运行元数据</h2><div class="card">{metadata}</div></section>'
         + f'<section><h2>指标汇总</h2>{summary_table}</section>'
+        + f'<section><h2>成本估算</h2>{cost_table}</section>'
         + f'<section><h2>按标签汇总</h2>{tag_table}</section>'
         + f'<section><h2>逐条结果（{len(details)} 条）</h2>{"".join(details)}</section>'
     )
@@ -171,6 +234,15 @@ def _single_report(data: Mapping[str, Any]) -> str:
             f'<div class="metric-value">{_e(_pct(info["mean"]))}</div>'
             f'<div class="metric-sub">{_e(info["correct"])} / {_e(info["evaluated"])} 条通过</div></div>'
         )
+    summary = data["summary"]
+    cost_total = summary.get("estimated_total_cost")
+    cost_currency = summary.get("cost_currency")
+    if cost_total is not None:
+        cards.append(
+            f'<div class="card"><div class="metric-label">估算总成本</div>'
+            f'<div class="metric-value">{_e(_money(cost_total, cost_currency))}</div>'
+            f'<div class="metric-sub">token(启发式) × 配置单价 · 非供应商账单</div></div>'
+        )
     metadata = _metadata_rows(
         [
             ("运行 ID", data["run_id"], False),
@@ -181,6 +253,11 @@ def _single_report(data: Mapping[str, Any]) -> str:
             ("模型参数", json.dumps(data["manifest"]["model"], ensure_ascii=False), False),
             ("执行策略", json.dumps(data["manifest"]["execution"], ensure_ascii=False), False),
             ("Token 口径", "ceil(Unicode 字符数 / 4)，仅为估算", False),
+            (
+                "成本口径",
+                "估算：token(启发式) × 配置单价" if cost_total is not None else "未配置 pricing，未计算成本",
+                False,
+            ),
         ]
     )
     details = []
@@ -192,14 +269,19 @@ def _single_report(data: Mapping[str, Any]) -> str:
         metrics = " · ".join(
             f"{METRIC_LABELS[name]} {_pct(record['metrics'][name])}" for name in METRIC_NAMES
         )
+        cost = record.get("cost_estimate")
+        cost_text = (
+            f" · 估算成本 {_money(cost['total'], cost['currency'])}" if cost is not None else ""
+        )
         details.append(
             f'<details class="item"><summary><span class="item-title">{index:02d} · {_e(record["id"])}</span>{tags}{status}</summary>'
             f'<div class="item-body"><h3>输入</h3><pre>{_e(record["input"])}</pre>'
             f'<h3>期望输出</h3><pre>{_e(record["expected"])}</pre><h3>实际输出</h3><pre>{output}</pre>{error}'
-            f'<div class="mini-metrics">{_e(metrics)}</div></div></details>'
+            f'<div class="mini-metrics">{_e(metrics)}{_e(cost_text)}</div></div></details>'
         )
     content = (
         _model_notice(data)
+        + (_cost_note(data) if cost_total is not None else "")
         + f'<div class="grid">{"".join(cards)}</div>'
         + f'<section><h2>运行元数据</h2><div class="card">{metadata}</div></section>'
         + f'<section><h2>逐条结果（{len(details)} 条）</h2>{"".join(details)}</section>'

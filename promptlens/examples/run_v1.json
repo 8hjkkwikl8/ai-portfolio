@@ -15,6 +15,12 @@
   "max_retries": 2,
   "retry_backoff_seconds": 0.05,
   "concurrency": 1,
+  "pricing": {
+    "input_per_1k_tokens": 0.00015,
+    "output_per_1k_tokens": 0.0006,
+    "currency": "USD",
+    "label": "示例单价（非供应商报价）"
+  },
   "output": "../artifacts/baseline.json",
   "report": "../artifacts/baseline.html"
 }

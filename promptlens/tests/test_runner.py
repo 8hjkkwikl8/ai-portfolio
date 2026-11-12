@@ -13,7 +13,7 @@ from promptlens.providers import (
     ProviderTimeout,
 )
 from promptlens.registry import PromptRegistry
-from promptlens.runner import run_experiment
+from promptlens.runner import compare_runs, estimate_cost, run_experiment
 
 
 class ScriptedProvider(Provider):
@@ -232,6 +232,110 @@ class RunnerTests(unittest.TestCase):
         )
         self.assertEqual([record["id"] for record in result["records"]], ["a", "b"])
         self.assertEqual(result["summary"]["metrics"]["exact_match"]["mean"], 1.0)
+
+    def test_pricing_adds_estimates_without_claiming_real_billing(self) -> None:
+        path = self.dataset(
+            [
+                {"id": "a", "input": "请问订单一般多久发货？", "expected": "咨询｜询问发货时间"},
+                {"id": "b", "input": "建议App增加深色模式。", "expected": "建议｜增加深色模式"},
+            ]
+        )
+        pricing = {
+            "input_per_1k_tokens": 0.5,
+            "output_per_1k_tokens": 1.5,
+            "currency": "usd",
+            "label": "测试单价",
+        }
+        result = run_experiment(self.config(path, pricing=pricing), self.registry, base_dir=self.root)
+        totals = []
+        for record in result["records"]:
+            tokens = record["estimated_tokens"]
+            expected = (
+                tokens["prompt"] / 1000 * 0.5
+                + tokens["completion"] / 1000 * 1.5
+            )
+            self.assertAlmostEqual(record["cost_estimate"]["total"], expected, places=8)
+            self.assertTrue(record["cost_estimate"]["is_estimate"])
+            self.assertEqual(record["cost_estimate"]["currency"], "USD")
+            totals.append(record["cost_estimate"]["total"])
+        self.assertAlmostEqual(result["summary"]["estimated_total_cost"], sum(totals), places=8)
+        self.assertEqual(result["summary"]["cost_currency"], "USD")
+        self.assertEqual(result["manifest"]["cost"]["pricing"]["label"], "测试单价")
+        self.assertTrue(result["manifest"]["cost"]["is_estimate"])
+
+    def test_cost_is_absent_when_pricing_is_not_configured(self) -> None:
+        path = self.dataset([{"id": "a", "input": "文本", "expected": "x"}])
+        result = run_experiment(self.config(path), self.registry, base_dir=self.root)
+        self.assertIsNone(result["records"][0]["cost_estimate"])
+        self.assertIsNone(result["summary"]["estimated_total_cost"])
+        self.assertIsNone(result["manifest"]["cost"]["pricing"])
+        self.assertIn("未配置", result["manifest"]["cost"]["notice"])
+
+    def test_invalid_pricing_is_rejected(self) -> None:
+        path = self.dataset([{"id": "a", "input": "文本", "expected": "x"}])
+        cases = [
+            {"input_per_1k_tokens": -0.1, "output_per_1k_tokens": 1},
+            {"input_per_1k_tokens": True, "output_per_1k_tokens": 1},
+            {"input_per_1k_tokens": 1, "output_per_1k_tokens": "1"},
+            {"input_per_1k_tokens": 1, "output_per_1k_tokens": 1, "currency": "  "},
+            {"input_per_1k_tokens": 1, "output_per_1k_tokens": 1, "label": 3},
+            [],
+        ]
+        for pricing in cases:
+            with self.subTest(pricing=pricing):
+                with self.assertRaises(ValueError):
+                    run_experiment(
+                        self.config(path, pricing=pricing),
+                        self.registry,
+                        base_dir=self.root,
+                    )
+
+    def test_pricing_is_part_of_run_identity(self) -> None:
+        path = self.dataset([{"id": "a", "input": "文本", "expected": "x"}])
+        plain = run_experiment(self.config(path), self.registry, base_dir=self.root)
+        priced = run_experiment(
+            self.config(
+                path,
+                pricing={"input_per_1k_tokens": 1, "output_per_1k_tokens": 1},
+            ),
+            self.registry,
+            base_dir=self.root,
+        )
+        self.assertNotEqual(plain["run_id"], priced["run_id"])
+
+    def test_comparison_reports_cost_delta(self) -> None:
+        path = self.dataset([{"id": "a", "input": "文本", "expected": "x"}])
+        baseline = run_experiment(
+            self.config(
+                path,
+                pricing={"input_per_1k_tokens": 1, "output_per_1k_tokens": 1},
+            ),
+            self.registry,
+            base_dir=self.root,
+        )
+        candidate = run_experiment(
+            self.config(
+                path,
+                pricing={"input_per_1k_tokens": 2, "output_per_1k_tokens": 2},
+            ),
+            self.registry,
+            base_dir=self.root,
+        )
+        comparison = compare_runs(baseline, candidate)
+        self.assertTrue(comparison["cost"]["is_estimate"])
+        self.assertAlmostEqual(
+            comparison["cost"]["delta"],
+            candidate["summary"]["estimated_total_cost"]
+            - baseline["summary"]["estimated_total_cost"],
+            places=8,
+        )
+        self.assertEqual(comparison["cost"]["currency"], "USD")
+
+    def test_estimate_cost_handles_zero_and_missing_pricing(self) -> None:
+        self.assertIsNone(estimate_cost(10, 10, None))
+        priced = estimate_cost(1000, 500, {"input_per_1k_tokens": 2, "output_per_1k_tokens": 4, "currency": "CNY"})
+        self.assertEqual(priced["total"], 4.0)
+        self.assertEqual(priced["currency"], "CNY")
 
 
 if __name__ == "__main__":

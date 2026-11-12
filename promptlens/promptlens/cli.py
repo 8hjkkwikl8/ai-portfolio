@@ -62,6 +62,8 @@ def command_run(args: argparse.Namespace) -> int:
         "result": str(output),
         "report": str(report_path) if report_path else None,
         "metrics": {name: info["mean"] for name, info in result["summary"]["metrics"].items()},
+        "estimated_total_cost": result["summary"]["estimated_total_cost"],
+        "cost_currency": result["summary"]["cost_currency"],
     }
     print(json.dumps(response, ensure_ascii=False, indent=2))
     return 0

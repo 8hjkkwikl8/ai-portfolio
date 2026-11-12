@@ -73,12 +73,34 @@ python -m promptlens.cli compare \
   "max_retries": 2,
   "retry_backoff_seconds": 0.05,
   "concurrency": 1,
+  "pricing": {
+    "input_per_1k_tokens": 0.00015,
+    "output_per_1k_tokens": 0.0006,
+    "currency": "USD",
+    "label": "示例单价（非供应商报价）"
+  },
   "output": "../artifacts/baseline.json",
   "report": "../artifacts/baseline.html"
 }
 ```
 
 相对路径以配置文件所在目录为基准。数据集为 JSONL，每行至少包含 `id`、`input`、`expected`，可选 `tags` 与 `pattern`。
+
+`pricing` 可省略。配置后，`input_per_1k_tokens` 与 `output_per_1k_tokens` 必须是非负数，`currency` 默认 `USD`，`label` 用于标注单价来源；单价属于实验身份的一部分，修改单价会产生不同的 `run_id`。
+
+## 成本估算（可选）
+
+PromptLens 不内置任何供应商报价，成本只按调用方提供的单价计算：
+
+```text
+估算 token 数 = ceil(Unicode 字符数 / 4)      # 启发式，不是 tokenizer
+单条成本     = 输入 token / 1000 × 输入单价
+             + 输出 token / 1000 × 输出单价
+```
+
+每条记录写入 `cost_estimate`（`input`、`output`、`total`、`currency`、`is_estimate`、`method`），汇总写入 `estimated_total_cost`、`cost_currency`、`cost_is_estimate`，运行清单写入 `cost` 块并附说明；`compare` 额外输出基线与候选的成本差值。未配置 `pricing` 时以上字段为 `null`，报告显示“未配置”，不显示 0。
+
+这是估算值，不是供应商账单：中文等多字节字符的 token 比例与模型 tokenizer 并不固定，四舍五入、缓存命中、批处理折扣也未计入。它适合比较同数据集上两个提示词版本的相对开销，不适合作为财务结算依据。
 
 ## 指标与错误处理
 
@@ -128,12 +150,13 @@ export OPENAI_MODEL="your-model"
 python -m unittest discover -s tests -q
 ```
 
-29 项测试覆盖：版本不可变与内容哈希、模板变量校验、数据哈希、三项指标与标签汇总、失败隔离、超时与重试、永久 4xx 不重试、保留字段拒绝、HTML 转义与报告免责声明。
+35 项测试覆盖：版本不可变与内容哈希、模板变量校验、数据哈希、三项指标与标签汇总、失败隔离、超时与重试、永久 4xx 不重试、保留字段拒绝、成本估算与对比差值、定价非法值拒绝、HTML 转义与报告免责声明。
 
 ## 限制
 
 - 示例 provider 是规则模拟，不理解自然语言，也不调用模型。
 - 指标只衡量字面输出，不评估语义正确性、事实性或安全性。
 - 数据集需要人工准备与标注；没有主动学习、采样或标注界面。
-- 未实现多模型并行对比、成本统计与在线服务化。
+- 未实现多模型并行对比与在线服务化。
+- 成本为字符启发式估算，不是 tokenizer 精确计数，也不代表供应商账单。
 - 并发运行会降低可复现性；真实结论应固定模型版本并重复实验。
