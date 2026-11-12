@@ -3,7 +3,7 @@
 [中文](README.md) | English
 
 ![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-93%20passing-176b4d)
+![Tests](https://img.shields.io/badge/tests-96%20passing-176b4d)
 ![Offline](https://img.shields.io/badge/demo-offline--first-102b25)
 ![CI](https://github.com/8hjkkwikl8/ai-portfolio/actions/workflows/ci.yml/badge.svg)
 
@@ -17,7 +17,7 @@ These are not screenshots or concept mockups. Every metric in this repository ca
 | --- | --- | --- | --- | --- |
 | [InsightRAG](insightrag/) | Flagship · RAG | Hybrid retrieval, evidence replay, sentence-level citation validation, gold-set evaluation | 14 | [Evaluation JSON](insightrag/artifacts/evaluation.json) |
 | [PromptLens](promptlens/) | Lightweight · LLM evaluation | Immutable prompt versions, reproducible experiments, failure isolation and retries | 29 | [Comparison report](promptlens/artifacts/report.html) |
-| [DataChat BI](datachat_bi/) | Lightweight · AI + data safety | A complete safety boundary from natural language to read-only SQL | 50 | [Chart report](datachat_bi/datachat_report.html) |
+| [DataChat BI](datachat_bi/) | Lightweight · AI + data safety | A complete safety boundary from natural language to read-only SQL | 53 | [Chart report](datachat_bi/datachat_report.html) |
 
 Sub-project READMEs are currently in Chinese; commands, configuration keys, and artifact formats are language-independent.
 
@@ -33,7 +33,7 @@ python -m pip install -r requirements.txt
 # DataChat BI  http://127.0.0.1:8002
 python start_all.py
 
-# 93 automated tests + three offline demos; exits non-zero on any failure
+# 96 automated tests + three offline demos; exits non-zero on any failure
 python verify_all.py
 ```
 
@@ -80,6 +80,7 @@ Getting a model to write SQL is easy; ensuring it can only read, only touch allo
 - Lexical and structural pre-checks: a single `SELECT`/`WITH` only; comments, multi-statements, write keywords, and non-allowlisted functions are rejected.
 - Table, column, and function allowlists, bound parameters, and automatic `LIMIT` injection or tightening.
 - Execution uses a read-only URI, `PRAGMA query_only`, the SQLite authorizer, and progress-handler timeouts — bypassing the pre-check is not the end of the story.
+- Local JSONL audit events record the question, planner mode, candidate and guarded SQL hashes, guard outcome, row count, and latency; raw SQL, bound parameters, and exception messages are excluded.
 - The offline rule planner matches complete question patterns only; extra conditions such as "East China region only" are explicitly rejected rather than silently ignored.
 - Chinese web UI with inline SVG charts and no external CDN dependencies.
 
@@ -99,7 +100,7 @@ Demo data: 48 deterministic orders, 7 question types, 6 charts. Total revenue is
 ai-portfolio/
 ├─ index.html              # Portfolio dashboard (open locally)
 ├─ start_all.py            # Start InsightRAG and DataChat BI with health checks
-├─ verify_all.py           # 93 tests + three offline demos
+├─ verify_all.py           # 96 tests + three offline demos
 ├─ requirements.txt
 ├─ insightrag/             # Flagship: hybrid retrieval, citation validation, gold-set evaluation
 ├─ promptlens/             # Lightweight: prompt versioning and reproducible evaluation

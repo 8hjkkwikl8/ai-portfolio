@@ -23,6 +23,7 @@ htmlcov/
 
 # 日志与编辑器/系统文件
 *.log
+/datachat_bi/artifacts/query_audit*.jsonl
 .idea/
 .vscode/
 .DS_Store

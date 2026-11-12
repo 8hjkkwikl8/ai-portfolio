@@ -3,7 +3,7 @@
 中文 | [English](README.en.md)
 
 ![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-93%20passing-176b4d)
+![Tests](https://img.shields.io/badge/tests-96%20passing-176b4d)
 ![Offline](https://img.shields.io/badge/demo-offline--first-102b25)
 ![CI](https://github.com/8hjkkwikl8/ai-portfolio/actions/workflows/ci.yml/badge.svg)
 
@@ -17,7 +17,7 @@
 | --- | --- | --- | --- | --- |
 | [InsightRAG](insightrag/) | 旗舰 · RAG | 混合检索、证据回放、逐句引用校验、金标评测 | 14 | [评测 JSON](insightrag/artifacts/evaluation.json) |
 | [PromptLens](promptlens/) | 轻量 · LLM 评测 | 不可变提示词版本、可复现实验、失败隔离与重试 | 29 | [对比报告](promptlens/artifacts/report.html) |
-| [DataChat BI](datachat_bi/) | 轻量 · AI + 数据安全 | 自然语言到只读 SQL 的完整安全边界 | 50 | [图表报告](datachat_bi/datachat_report.html) |
+| [DataChat BI](datachat_bi/) | 轻量 · AI + 数据安全 | 自然语言到只读 SQL 的完整安全边界 | 53 | [图表报告](datachat_bi/datachat_report.html) |
 
 ## 快速开始
 
@@ -31,7 +31,7 @@ python -m pip install -r requirements.txt
 # DataChat BI  http://127.0.0.1:8002
 python start_all.py
 
-# 93 项自动化测试 + 三个离线演示，任一失败即返回非零
+# 96 项自动化测试 + 三个离线演示，任一失败即返回非零
 python verify_all.py
 ```
 
@@ -78,6 +78,7 @@ cd datachat_bi  && python demo.py
 - 词法与结构预检：只允许单条 `SELECT`/`WITH`，拒绝注释、多语句、写操作关键字、非白名单函数。
 - 表、列与函数白名单，参数绑定，自动追加或收紧 `LIMIT`。
 - 执行层使用只读 URI、`PRAGMA query_only`、SQLite authorizer 和进度处理器超时，预检被绕过也不是最后一层。
+- 本地 JSONL 审计记录问法、规划模式、候选与最终 SQL 哈希、守护结果、行数及耗时；不记录 SQL、绑定参数或异常原文。
 - 离线规则规划器只匹配完整问法；出现“仅看华东”“只看线上渠道”等额外条件时明确拒绝，而不是静默忽略。
 - 中文 Web UI 与内联 SVG 图表，不依赖外部 CDN。
 
@@ -97,7 +98,7 @@ cd datachat_bi  && python demo.py
 ai-portfolio/
 ├─ index.html              # 作品集展示页（本地打开）
 ├─ start_all.py            # 启动 InsightRAG 与 DataChat BI，并做健康检查
-├─ verify_all.py           # 93 项测试 + 三个离线演示
+├─ verify_all.py           # 96 项测试 + 三个离线演示
 ├─ requirements.txt
 ├─ insightrag/             # 旗舰：混合检索、引用校验、金标评测
 ├─ promptlens/             # 轻量：提示词版本与可复现评测

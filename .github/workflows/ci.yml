@@ -27,7 +27,7 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
 
-      # 93 项测试 + 3 个离线演示；无需任何模型密钥，全程离线。
+      # 96 项测试 + 3 个离线演示；无需任何模型密钥，全程离线。
       # demo 重新生成的产物只用于验证退出码，不会提交。
       - name: Run tests and offline demos
         run: python verify_all.py

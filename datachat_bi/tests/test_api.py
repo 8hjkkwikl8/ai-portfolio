@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import tempfile
 import unittest
@@ -22,8 +23,14 @@ class APITests(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary_directory = tempfile.TemporaryDirectory()
         self.db_path = Path(self.temporary_directory.name) / "api-isolated.db"
+        self.audit_path = Path(self.temporary_directory.name) / "api-audit.jsonl"
         create_demo_database(self.db_path)
-        self.app = create_app(self.db_path, planner=RulePlanner(), max_rows=20)
+        self.app = create_app(
+            self.db_path,
+            planner=RulePlanner(),
+            max_rows=20,
+            audit_log_path=self.audit_path,
+        )
         self.client = TestClient(self.app)
 
     def tearDown(self) -> None:
@@ -36,6 +43,7 @@ class APITests(unittest.TestCase):
         self.assertEqual(health.json()["status"], "ok")
         self.assertEqual(health.json()["order_count"], 48)
         self.assertIn("离线规则", health.json()["mode"])
+        self.assertEqual(health.json()["audit_log"], "enabled")
 
         schema = self.client.get("/api/schema")
         self.assertEqual(schema.status_code, 200)
@@ -59,6 +67,12 @@ class APITests(unittest.TestCase):
         self.assertIn("LIMIT 20", data["sql"])
         self.assertTrue(data["chart"].startswith("<svg"))
         self.assertIn("离线规则", data["mode"])
+        event = json.loads(self.audit_path.read_text(encoding="utf-8").splitlines()[-1])
+        self.assertEqual(event["status"], "success")
+        self.assertEqual(event["guard_result"], "passed")
+        self.assertEqual(event["row_count"], 4)
+        self.assertNotIn("sql", event)
+        self.assertNotIn("params", event)
 
     def test_unknown_question_returns_safe_examples(self) -> None:
         response = self.client.post("/api/query", json={"question": "预测明年公司战略"})
@@ -71,9 +85,17 @@ class APITests(unittest.TestCase):
         self.assertEqual(response.status_code, 422)
 
     def test_environment_database_path_is_honored(self) -> None:
-        with patch.dict(os.environ, {"DATACHAT_DB": str(self.db_path)}):
+        environment_audit_path = Path(self.temporary_directory.name) / "environment-audit.jsonl"
+        with patch.dict(
+            os.environ,
+            {"DATACHAT_DB": str(self.db_path), "DATACHAT_AUDIT_LOG": str(environment_audit_path)},
+        ):
             application = create_app(planner=RulePlanner())
         self.assertEqual(application.state.database.path, self.db_path.resolve())
+        self.assertEqual(application.state.query_service.audit_logger.path, environment_audit_path.resolve())
+        disabled = create_app(self.db_path, planner=RulePlanner(), audit_log_path="off")
+        self.assertFalse(disabled.state.audit_log_enabled)
+        self.assertIsNone(disabled.state.query_service.audit_logger)
 
     def test_malicious_llm_candidate_still_passes_guard(self) -> None:
         class MaliciousPlanner:
@@ -82,7 +104,11 @@ class APITests(unittest.TestCase):
             def plan(self, question: str) -> QueryPlan:
                 return QueryPlan(question, question, (), "测试候选", None, self.mode)
 
-        application = create_app(self.db_path, planner=MaliciousPlanner())
+        application = create_app(
+            self.db_path,
+            planner=MaliciousPlanner(),
+            audit_log_path=self.audit_path,
+        )
         client = TestClient(application)
         try:
             for statement in ("DROP TABLE orders", "ATTACH DATABASE 'x' AS x", "SELECT * FROM sqlite_master"):
