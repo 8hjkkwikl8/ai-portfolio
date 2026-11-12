@@ -3,7 +3,7 @@
 [中文](README.md) | English
 
 ![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-102%20passing-176b4d)
+![Tests](https://img.shields.io/badge/tests-106%20passing-176b4d)
 ![Offline](https://img.shields.io/badge/demo-offline--first-102b25)
 ![CI](https://github.com/8hjkkwikl8/ai-portfolio/actions/workflows/ci.yml/badge.svg)
 
@@ -16,7 +16,7 @@ These are not screenshots or concept mockups. Every metric in this repository ca
 | Project | Role | Core engineering problem | Tests | Artifacts |
 | --- | --- | --- | --- | --- |
 | [InsightRAG](insightrag/) | Flagship · RAG | Hybrid retrieval, evidence replay, sentence-level citation validation, gold-set evaluation | 14 | [Evaluation JSON](insightrag/artifacts/evaluation.json) |
-| [PromptLens](promptlens/) | Lightweight · LLM evaluation | Immutable prompt versions, reproducible experiments, failure isolation and retries, cost estimation | 35 | [Comparison report](promptlens/artifacts/report.html) |
+| [PromptLens](promptlens/) | Lightweight · LLM evaluation | Immutable prompt versions, reproducible experiments, failure isolation and retries, cost estimation, repeated-run stability | 39 | [Comparison report](promptlens/artifacts/report.html) |
 | [DataChat BI](datachat_bi/) | Lightweight · AI + data safety | A complete safety boundary from natural language to read-only SQL | 53 | [Chart report](datachat_bi/datachat_report.html) |
 
 Sub-project READMEs are currently in Chinese; commands, configuration keys, and artifact formats are language-independent.
@@ -33,7 +33,7 @@ python -m pip install -r requirements.txt
 # DataChat BI  http://127.0.0.1:8002
 python start_all.py
 
-# 102 automated tests + three offline demos; exits non-zero on any failure
+# 106 automated tests + three offline demos; exits non-zero on any failure
 python verify_all.py
 ```
 
@@ -70,6 +70,7 @@ If a prompt change is justified only by "it feels better", it can neither be rev
 - Per-item failure isolation, timeouts, and bounded exponential backoff; 408/429/5xx are retryable, other 4xx errors are permanent and not retried.
 - Audited fields such as `model` and `messages` cannot be overridden by `model_params`.
 - Optional pricing config produces cost estimates and comparison deltas, labeled as estimates based on heuristic character-based token counts — not vendor invoices.
+- The same config can be repeated N times with mean/range summaries and per-run references; mock runs must share the same reproducibility hash, and the report states that repeated runs are not statistical significance.
 - All dynamic report content is HTML-escaped; the report is a single offline-viewable file.
 
 In the bundled example, `exact_match` rises from 7.1% to 92.9%. This comes from a **deterministic mock provider** and only proves the evaluation pipeline works — it is not evidence of real model or prompt quality. Real conclusions require a configured API and re-testing on an independent held-out set. See [promptlens/README.md](promptlens/README.md) (Chinese).
@@ -101,7 +102,7 @@ Demo data: 48 deterministic orders, 7 question types, 6 charts. Total revenue is
 ai-portfolio/
 ├─ index.html              # Portfolio dashboard (open locally)
 ├─ start_all.py            # Start InsightRAG and DataChat BI with health checks
-├─ verify_all.py           # 102 tests + three offline demos
+├─ verify_all.py           # 106 tests + three offline demos
 ├─ requirements.txt
 ├─ insightrag/             # Flagship: hybrid retrieval, citation validation, gold-set evaluation
 ├─ promptlens/             # Lightweight: prompt versioning and reproducible evaluation

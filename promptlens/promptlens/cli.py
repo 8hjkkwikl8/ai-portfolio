@@ -10,7 +10,7 @@ from typing import Any, Sequence
 
 from .registry import PromptRegistry
 from .report import write_html_report
-from .runner import compare_runs, run_experiment, save_json
+from .runner import compare_runs, repeat_experiment, run_experiment, save_json
 
 
 def _project_root() -> Path:
@@ -66,6 +66,47 @@ def command_run(args: argparse.Namespace) -> int:
         "cost_currency": result["summary"]["cost_currency"],
     }
     print(json.dumps(response, ensure_ascii=False, indent=2))
+    return 0
+
+
+def command_repeat(args: argparse.Namespace) -> int:
+    config_path = Path(args.config).resolve()
+    config = _load_config(config_path)
+    registry = PromptRegistry(args.registry)
+    result = repeat_experiment(
+        config,
+        registry,
+        args.times,
+        base_dir=config_path.parent,
+    )
+    output = (
+        Path(args.output).resolve()
+        if args.output
+        else _resolve(config_path.parent, config.get("repeat_output", "repeat-result.json"))
+    )
+    save_json(result, output)
+    report_path = None
+    if args.report:
+        report_path = Path(args.report).resolve()
+        write_html_report(result, report_path)
+    print(
+        json.dumps(
+            {
+                "repeat_id": result["repeat_id"],
+                "repeats": result["repeats"],
+                "deterministic_outputs": result["deterministic_outputs"],
+                "result": str(output),
+                "report": str(report_path) if report_path else None,
+                "metrics": {
+                    name: {"mean": info["mean"], "range": info["range"]}
+                    for name, info in result["summary"]["metrics"].items()
+                },
+                "notice": result["notice"],
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
     return 0
 
 
@@ -149,6 +190,14 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--output", help="覆盖结果 JSON 输出路径")
     run.add_argument("--report", help="同时生成单实验 HTML 报告")
     run.set_defaults(func=command_run)
+
+    repeat = subparsers.add_parser("repeat", help="同一配置重复运行并汇总稳定性")
+    repeat.add_argument("--config", required=True, help="运行配置 JSON")
+    repeat.add_argument("--times", type=int, default=3, help="重复次数，默认 3")
+    repeat.add_argument("--registry", default=".promptlens/registry", help="版本注册表目录")
+    repeat.add_argument("--output", help="覆盖重复运行结果 JSON 输出路径")
+    repeat.add_argument("--report", help="同时生成稳定性 HTML 报告")
+    repeat.set_defaults(func=command_repeat)
 
     compare = subparsers.add_parser("compare", help="比较两个同数据集实验")
     compare.add_argument("baseline", help="基线运行结果 JSON")

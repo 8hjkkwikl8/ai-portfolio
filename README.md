@@ -3,7 +3,7 @@
 中文 | [English](README.en.md)
 
 ![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-102%20passing-176b4d)
+![Tests](https://img.shields.io/badge/tests-106%20passing-176b4d)
 ![Offline](https://img.shields.io/badge/demo-offline--first-102b25)
 ![CI](https://github.com/8hjkkwikl8/ai-portfolio/actions/workflows/ci.yml/badge.svg)
 
@@ -16,7 +16,7 @@
 | 项目 | 定位 | 核心工程问题 | 测试 | 可查看产物 |
 | --- | --- | --- | --- | --- |
 | [InsightRAG](insightrag/) | 旗舰 · RAG | 混合检索、证据回放、逐句引用校验、金标评测 | 14 | [评测 JSON](insightrag/artifacts/evaluation.json) |
-| [PromptLens](promptlens/) | 轻量 · LLM 评测 | 不可变提示词版本、可复现实验、失败隔离与重试、成本估算 | 35 | [对比报告](promptlens/artifacts/report.html) |
+| [PromptLens](promptlens/) | 轻量 · LLM 评测 | 不可变提示词版本、可复现实验、失败隔离与重试、成本估算、重复运行稳定性 | 39 | [对比报告](promptlens/artifacts/report.html) |
 | [DataChat BI](datachat_bi/) | 轻量 · AI + 数据安全 | 自然语言到只读 SQL 的完整安全边界 | 53 | [图表报告](datachat_bi/datachat_report.html) |
 
 ## 快速开始
@@ -31,7 +31,7 @@ python -m pip install -r requirements.txt
 # DataChat BI  http://127.0.0.1:8002
 python start_all.py
 
-# 102 项自动化测试 + 三个离线演示，任一失败即返回非零
+# 106 项自动化测试 + 三个离线演示，任一失败即返回非零
 python verify_all.py
 ```
 
@@ -68,6 +68,7 @@ cd datachat_bi  && python demo.py
 - 单条失败隔离、超时、有限指数退避；408/429/5xx 可重试，其余 4xx 视为永久错误不重试。
 - `model`、`messages` 等审计字段不能被 `model_params` 覆盖。
 - 可选定价配置输出成本估算与对比差值，标注为按字符启发式 token 计算的估算值，不代表供应商账单。
+- 同一配置可重复运行 N 次并汇总均值/极差与逐次引用；mock 下复现哈希应完全一致，报告明确声明不代表统计显著性。
 - 报告所有动态内容 HTML 转义，单文件离线可看。
 
 示例中的 `exact_match` 从 7.1% 提升到 92.9%，来自**确定性的 mock provider**，只证明评测流水线能跑通，不是真实模型或提示词质量结论。真实评测需要配置 API 并在独立留出集上复测。详见 [promptlens/README.md](promptlens/README.md)。
@@ -99,7 +100,7 @@ cd datachat_bi  && python demo.py
 ai-portfolio/
 ├─ index.html              # 作品集展示页（本地打开）
 ├─ start_all.py            # 启动 InsightRAG 与 DataChat BI，并做健康检查
-├─ verify_all.py           # 102 项测试 + 三个离线演示
+├─ verify_all.py           # 106 项测试 + 三个离线演示
 ├─ requirements.txt
 ├─ insightrag/             # 旗舰：混合检索、引用校验、金标评测
 ├─ promptlens/             # 轻量：提示词版本与可复现评测

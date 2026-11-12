@@ -1,0 +1,182 @@
+{
+  "created_at": "2026-11-12T08:00:33Z",
+  "deterministic_outputs": true,
+  "manifest": {
+    "cost": {
+      "currency": "USD",
+      "is_estimate": true,
+      "notice": "按字符启发式 token 估算与原配置单价计算，不代表供应商账单",
+      "pricing": {
+        "currency": "USD",
+        "input_per_1k_tokens": 0.00015,
+        "is_estimate": true,
+        "label": "示例单价（非供应商报价）",
+        "output_per_1k_tokens": 0.0006
+      },
+      "total": 7.32e-05
+    },
+    "created_at": "2026-11-12T08:00:33Z",
+    "dataset": {
+      "items": 14,
+      "path": "feedback.jsonl",
+      "sha256": "5837588c00a0a0d848b6b815768b6dc769a797d2fa3e9e970fe1d9aba61a2869"
+    },
+    "execution": {
+      "concurrency": 1,
+      "max_retries": 2,
+      "retry_backoff_seconds": 0.05,
+      "serial_reproducible": true,
+      "timeout_seconds": 2.0
+    },
+    "model": {
+      "is_mock": true,
+      "name": "offline-feedback-rules-v1",
+      "notice": "离线确定性规则模拟，未调用真实模型",
+      "parameters": {
+        "max_tokens": 128,
+        "seed": 42,
+        "temperature": 0
+      },
+      "provider": "mock"
+    },
+    "prompt": {
+      "description": "基础分类指令与统一输出格式",
+      "name": "feedback-classifier",
+      "template": "你是用户反馈分类助手。请将用户反馈分类为 咨询、投诉、建议、其他，并输出简短理由。\n输出格式：类别｜理由\n只输出一行，不要解释分类过程。\n\n用户反馈：\n${input}\n",
+      "version_id": "p_6764c526720c1ab0089ef693c6472983aea73d9f98e4de230381ea6d9de55ac2"
+    },
+    "repeats": 3
+  },
+  "name": "反馈分类-v1-基础指令",
+  "notice": "重复运行只描述同一配置下的指标波动，不代表统计显著性；重复次数不是独立样本量。",
+  "repeat_id": "rep_8ef0b12bca187e7ce9d9",
+  "repeats": 3,
+  "runs": [
+    {
+      "created_at": "2026-11-12T08:00:33Z",
+      "estimated_total_cost": 7.32e-05,
+      "failed": 0,
+      "index": 1,
+      "metrics": {
+        "contains": 0.07142857142857142,
+        "exact_match": 0.07142857142857142,
+        "regex": 0.7857142857142857
+      },
+      "reproducibility_hash": "2bd20cb9dc2fdf0084c76512a4e83bb6c2d06f550cb83410f45d4f38f216290e",
+      "run_id": "run_453d906d772cf609da93",
+      "succeeded": 14,
+      "total_latency_ms": 0.0
+    },
+    {
+      "created_at": "2026-11-12T08:00:33Z",
+      "estimated_total_cost": 7.32e-05,
+      "failed": 0,
+      "index": 2,
+      "metrics": {
+        "contains": 0.07142857142857142,
+        "exact_match": 0.07142857142857142,
+        "regex": 0.7857142857142857
+      },
+      "reproducibility_hash": "2bd20cb9dc2fdf0084c76512a4e83bb6c2d06f550cb83410f45d4f38f216290e",
+      "run_id": "run_453d906d772cf609da93",
+      "succeeded": 14,
+      "total_latency_ms": 0.0
+    },
+    {
+      "created_at": "2026-11-12T08:00:33Z",
+      "estimated_total_cost": 7.32e-05,
+      "failed": 0,
+      "index": 3,
+      "metrics": {
+        "contains": 0.07142857142857142,
+        "exact_match": 0.07142857142857142,
+        "regex": 0.7857142857142857
+      },
+      "reproducibility_hash": "2bd20cb9dc2fdf0084c76512a4e83bb6c2d06f550cb83410f45d4f38f216290e",
+      "run_id": "run_453d906d772cf609da93",
+      "succeeded": 14,
+      "total_latency_ms": 0.0
+    }
+  ],
+  "schema_version": 1,
+  "summary": {
+    "cost_currency": "USD",
+    "cost_is_estimate": true,
+    "estimated_total_cost": {
+      "max": 7.32e-05,
+      "mean": 7.3e-05,
+      "min": 7.32e-05,
+      "range": 0.0,
+      "samples": 3,
+      "values": [
+        7.32e-05,
+        7.32e-05,
+        7.32e-05
+      ]
+    },
+    "failed": {
+      "max": 0,
+      "mean": 0.0,
+      "min": 0,
+      "range": 0,
+      "samples": 3,
+      "values": [
+        0,
+        0,
+        0
+      ]
+    },
+    "metrics": {
+      "contains": {
+        "max": 0.07142857142857142,
+        "mean": 0.071429,
+        "min": 0.07142857142857142,
+        "range": 0.0,
+        "samples": 3,
+        "values": [
+          0.07142857142857142,
+          0.07142857142857142,
+          0.07142857142857142
+        ]
+      },
+      "exact_match": {
+        "max": 0.07142857142857142,
+        "mean": 0.071429,
+        "min": 0.07142857142857142,
+        "range": 0.0,
+        "samples": 3,
+        "values": [
+          0.07142857142857142,
+          0.07142857142857142,
+          0.07142857142857142
+        ]
+      },
+      "regex": {
+        "max": 0.7857142857142857,
+        "mean": 0.785714,
+        "min": 0.7857142857142857,
+        "range": 0.0,
+        "samples": 3,
+        "values": [
+          0.7857142857142857,
+          0.7857142857142857,
+          0.7857142857142857
+        ]
+      }
+    },
+    "total": 14,
+    "total_latency_ms": {
+      "max": 0.0,
+      "mean": 0.0,
+      "min": 0.0,
+      "range": 0.0,
+      "samples": 3,
+      "values": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  },
+  "type": "promptlens_repeat"
+}

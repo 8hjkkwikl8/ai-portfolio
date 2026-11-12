@@ -289,12 +289,117 @@ def _single_report(data: Mapping[str, Any]) -> str:
     return _layout("提示词实验运行报告", f"{data['name']} · 可审计的逐条输入、输出与指标", content)
 
 
+def _repeat_report(data: Mapping[str, Any]) -> str:
+    summary = data["summary"]
+    cards = []
+    for metric in METRIC_NAMES:
+        info = summary["metrics"][metric]
+        cards.append(
+            f'<div class="card"><div class="metric-label">{_e(METRIC_LABELS[metric])}</div>'
+            f'<div class="metric-value">{_e(_pct(info["mean"]))}</div>'
+            f'<div class="metric-sub">最小 {_e(_pct(info["min"]))} · 最大 {_e(_pct(info["max"]))} · '
+            f'极差 {_e(_pct(info["range"]))} · {len(info["values"])} 次</div></div>'
+        )
+    cost = summary.get("estimated_total_cost")
+    currency = summary.get("cost_currency")
+    if cost is not None:
+        cards.append(
+            f'<div class="card"><div class="metric-label">平均估算成本</div>'
+            f'<div class="metric-value">{_e(_money(cost["mean"], currency))}</div>'
+            f'<div class="metric-sub">最小 {_e(_money(cost["min"], currency))} · '
+            f'最大 {_e(_money(cost["max"], currency))} · 极差 {_e(_money(cost["range"], currency))}</div></div>'
+        )
+    determinism = (
+        '<span class="badge ok">逐次复现哈希一致</span>'
+        if data["deterministic_outputs"]
+        else '<span class="badge fail">逐次复现哈希不一致</span>'
+    )
+    metric_rows = []
+    for metric in METRIC_NAMES:
+        info = summary["metrics"][metric]
+        values = "、".join(_pct(value) for value in info["values"])
+        metric_rows.append(
+            f'<tr><td>{_e(METRIC_LABELS[metric])}<br><code>{_e(metric)}</code></td>'
+            f'<td class="num">{_e(_pct(info["mean"]))}</td>'
+            f'<td class="num">{_e(_pct(info["min"]))}</td>'
+            f'<td class="num">{_e(_pct(info["max"]))}</td>'
+            f'<td class="num">{_e(_pct(info["range"]))}</td>'
+            f'<td>{_e(values)}</td></tr>'
+        )
+    summary_table = (
+        '<div class="table-wrap"><table><thead><tr><th>指标</th><th class="num">均值</th>'
+        '<th class="num">最小值</th><th class="num">最大值</th><th class="num">极差</th><th>逐次值</th></tr></thead>'
+        f'<tbody>{"".join(metric_rows)}</tbody></table></div>'
+    )
+    run_rows = []
+    for run in data["runs"]:
+        run_cost = run.get("estimated_total_cost")
+        metric_cells = "".join(
+            f'<td class="num">{_e(_pct(run["metrics"][metric]))}</td>' for metric in METRIC_NAMES
+        )
+        run_rows.append(
+            f'<tr><td class="num">{_e(run["index"])}</td><td><code>{_e(run["run_id"])}</code></td>'
+            f'<td>{_e(run["created_at"])}</td>{metric_cells}'
+            f'<td class="num">{_e(run["failed"])} / {_e(data["summary"]["total"])}</td>'
+            f'<td class="num">{_e(run["total_latency_ms"])} ms</td>'
+            f'<td class="num">{_e(_money(run_cost, currency) if run_cost is not None else "—")}</td>'
+            f'<td><code>{_e(run["reproducibility_hash"][:12])}</code></td></tr>'
+        )
+    run_table = (
+        '<div class="table-wrap"><table><thead><tr><th class="num">#</th><th>运行 ID</th><th>生成时间</th>'
+        '<th class="num">完全匹配</th><th class="num">包含期望</th><th class="num">正则通过</th>'
+        '<th class="num">失败 / 总数</th><th class="num">总延迟</th><th class="num">估算成本</th><th>复现哈希</th></tr></thead>'
+        f'<tbody>{"".join(run_rows)}</tbody></table></div>'
+    )
+    metadata = _metadata_rows(
+        [
+            ("重复 ID", data["repeat_id"], False),
+            ("实验名称", data["name"], False),
+            ("重复次数", data["repeats"], False),
+            ("生成时间", data["created_at"], False),
+            ("提示词版本", data["manifest"]["prompt"]["version_id"], False),
+            ("数据 SHA256", data["manifest"]["dataset"]["sha256"], False),
+            ("模型 / 提供器", f"{data['manifest']['model']['name']} / {data['manifest']['model']['provider']}", False),
+            ("执行策略", json.dumps(data["manifest"]["execution"], ensure_ascii=False), False),
+            ("复现判定", determinism, True),
+            ("Token 口径", "ceil(Unicode 字符数 / 4)，仅为估算", False),
+            (
+                "成本口径",
+                "估算：token(启发式) × 配置单价" if cost is not None else "未配置 pricing，未计算成本",
+                False,
+            ),
+        ]
+    )
+    notice = (
+        '<div class="notice"><strong>重复运行不代表统计显著性：</strong>'
+        f"{_e(data.get('notice') or '重复运行只描述指标波动，不代表统计显著性。')}"
+        " 这里的 N 次运行共享同一提示词、同一数据与同一模型参数，只是同一配置下的 N 次观测；"
+        "不能据此计算置信区间或显著性检验，mock 结果也不构成真实模型质量结论。</div>"
+    )
+    content = (
+        notice
+        + _model_notice(data)
+        + (_cost_note(data) if cost is not None else "")
+        + f'<div class="grid">{"".join(cards)}</div>'
+        + f'<section><h2>运行元数据</h2><div class="card">{metadata}</div></section>'
+        + f'<section><h2>稳定性汇总</h2>{summary_table}</section>'
+        + f'<section><h2>逐次结果（{len(data["runs"])} 次）</h2>{run_table}</section>'
+    )
+    return _layout(
+        "多次运行稳定性报告",
+        f"{data['name']} · 同一配置重复 {data['repeats']} 次 · 均值与极差",
+        content,
+    )
+
+
 def render_html_report(data: Mapping[str, Any]) -> str:
     if data.get("type") == "promptlens_comparison":
         return _comparison_report(data)
     if data.get("type") == "promptlens_run":
         return _single_report(data)
-    raise ValueError("报告输入必须是 PromptLens 运行或比较结果")
+    if data.get("type") == "promptlens_repeat":
+        return _repeat_report(data)
+    raise ValueError("报告输入必须是 PromptLens 运行、比较或重复运行结果")
 
 
 def write_html_report(data: Mapping[str, Any] | str | Path, output_path: str | Path) -> Path:

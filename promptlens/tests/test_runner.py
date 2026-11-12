@@ -13,7 +13,8 @@ from promptlens.providers import (
     ProviderTimeout,
 )
 from promptlens.registry import PromptRegistry
-from promptlens.runner import compare_runs, estimate_cost, run_experiment
+from promptlens.report import render_html_report
+from promptlens.runner import compare_runs, estimate_cost, repeat_experiment, run_experiment
 
 
 class ScriptedProvider(Provider):
@@ -217,6 +218,115 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(result["summary"]["failed"], 1)
         self.assertEqual(result["records"][0]["attempts"], 0)
         self.assertIn("缺少模板变量：missing", result["records"][0]["error"]["message"])
+
+    def test_repeat_mock_runs_are_identical_and_summarized(self) -> None:
+        path = self.dataset(
+            [
+                {"id": "a", "input": "请问订单一般多久发货？", "expected": "咨询｜询问发货时间"},
+                {"id": "b", "input": "建议App增加深色模式。", "expected": "建议｜增加深色模式"},
+            ]
+        )
+        config = self.config(path)
+        first = repeat_experiment(
+            config,
+            self.registry,
+            3,
+            base_dir=self.root,
+            now=lambda: "2026-01-02T03:04:05Z",
+        )
+        second = repeat_experiment(
+            config,
+            self.registry,
+            3,
+            base_dir=self.root,
+            now=lambda: "2026-01-02T03:04:05Z",
+        )
+        self.assertEqual(first, second)
+        self.assertEqual(first["repeats"], 3)
+        self.assertEqual(len(first["runs"]), 3)
+        self.assertTrue(first["deterministic_outputs"])
+        self.assertEqual(
+            len({run["reproducibility_hash"] for run in first["runs"]}), 1
+        )
+        exact = first["summary"]["metrics"]["exact_match"]
+        self.assertEqual(exact["mean"], 1.0)
+        self.assertEqual(exact["min"], 1.0)
+        self.assertEqual(exact["max"], 1.0)
+        self.assertEqual(exact["range"], 0.0)
+        self.assertEqual(exact["values"], [1.0, 1.0, 1.0])
+        self.assertEqual(first["summary"]["failed"]["values"], [0, 0, 0])
+        self.assertEqual(first["summary"]["estimated_total_cost"], None)
+        report = render_html_report(first)
+        self.assertIn("不代表统计显著性", report)
+        self.assertIn("逐次复现哈希一致", report)
+
+    def test_repeat_reports_variation_and_marks_non_deterministic(self) -> None:
+        path = self.dataset(
+            [
+                {"id": "a", "input": "请问订单一般多久发货？", "expected": "咨询｜询问发货时间"},
+                {"id": "b", "input": "建议App增加深色模式。", "expected": "建议｜增加深色模式"},
+            ]
+        )
+
+        def flip_after_first_run(prompt: str, calls: int) -> GenerationResult:
+            del prompt
+            if calls <= 2:
+                return GenerationResult("咨询｜询问发货时间" if calls == 1 else "建议｜增加深色模式", latency_ms=0.0)
+            return GenerationResult("不确定", latency_ms=0.0)
+
+        result = repeat_experiment(
+            self.config(path),
+            self.registry,
+            2,
+            base_dir=self.root,
+            provider=ScriptedProvider(flip_after_first_run),
+        )
+        exact = result["summary"]["metrics"]["exact_match"]
+        self.assertEqual(exact["values"], [1.0, 0.0])
+        self.assertEqual(exact["mean"], 0.5)
+        self.assertEqual(exact["min"], 0.0)
+        self.assertEqual(exact["max"], 1.0)
+        self.assertEqual(exact["range"], 1.0)
+        self.assertFalse(result["deterministic_outputs"])
+        report = render_html_report(result)
+        self.assertIn("逐次复现哈希不一致", report)
+
+    def test_repeat_rejects_invalid_times(self) -> None:
+        path = self.dataset(
+            [{"id": "a", "input": "请问订单一般多久发货？", "expected": "咨询｜询问发货时间"}]
+        )
+        for times in (0, -1, True, 1.5, "3"):
+            with self.subTest(times=times):
+                with self.assertRaisesRegex(ValueError, "正整数"):
+                    repeat_experiment(
+                        self.config(path),
+                        self.registry,
+                        times,  # type: ignore[arg-type]
+                        base_dir=self.root,
+                    )
+
+    def test_repeat_cost_summary_requires_pricing(self) -> None:
+        path = self.dataset(
+            [{"id": "a", "input": "请问订单一般多久发货？", "expected": "咨询｜询问发货时间"}]
+        )
+        pricing = {
+            "input_per_1k_tokens": 0.0002,
+            "output_per_1k_tokens": 0.0008,
+            "currency": "usd",
+            "label": "测试单价",
+        }
+        result = repeat_experiment(
+            self.config(path, pricing=pricing),
+            self.registry,
+            2,
+            base_dir=self.root,
+        )
+        cost = result["summary"]["estimated_total_cost"]
+        self.assertIsNotNone(cost)
+        self.assertEqual(cost["range"], 0.0)
+        self.assertGreater(cost["mean"], 0)
+        self.assertEqual(result["summary"]["cost_currency"], "USD")
+        self.assertTrue(result["summary"]["cost_is_estimate"])
 
     def test_optional_concurrency_preserves_input_order(self) -> None:
         path = self.dataset(

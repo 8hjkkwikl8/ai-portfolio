@@ -53,6 +53,14 @@ python -m promptlens.cli compare \
   artifacts/baseline.json artifacts/candidate.json \
   --output artifacts/comparison.json \
   --report artifacts/report.html
+
+# 同一配置重复 3 次并汇总稳定性
+python -m promptlens.cli repeat \
+  --config examples/run_v1.json \
+  --times 3 \
+  --registry artifacts/registry \
+  --output artifacts/repeat.json \
+  --report artifacts/repeat_report.html
 ```
 
 `register` 输出 `version_id`（`p_` + 内容 SHA256）。相同名称、模板与描述重复注册会得到同一版本；任何一项变化都会产生新版本，旧版本不被覆盖。
@@ -102,6 +110,19 @@ PromptLens 不内置任何供应商报价，成本只按调用方提供的单价
 
 这是估算值，不是供应商账单：中文等多字节字符的 token 比例与模型 tokenizer 并不固定，四舍五入、缓存命中、批处理折扣也未计入。它适合比较同数据集上两个提示词版本的相对开销，不适合作为财务结算依据。
 
+## 重复运行稳定性（可选）
+
+真实模型输出有波动，单次运行的指标差值可能来自随机性。`repeat` 对同一配置连续运行 N 次，输出逐次运行引用与稳定性汇总：
+
+```text
+metrics.<指标>.mean / min / max / range / values / samples
+estimated_total_cost.mean / min / max / range（配置 pricing 时）
+total_latency_ms、failed 的均值与极差
+deterministic_outputs：各次复现哈希是否完全一致
+```
+
+mock provider 下 N 次运行除 `created_at` 外应完全一致，`deterministic_outputs` 为 `true`，可作为可复现性回归；真实 API 下该字段通常为 `false`，用于观察波动幅度。所有运行共享同一提示词、数据与模型参数，N 次重复只是同一配置下的 N 次观测，**不代表统计显著性，也不能据此计算置信区间或显著性检验**。报告与产物中均保留这句声明。
+
 ## 指标与错误处理
 
 | 指标 | 口径 |
@@ -142,6 +163,7 @@ export OPENAI_MODEL="your-model"
 - `artifacts/baseline.json` / `candidate.json`：完整逐条输出、指标、运行清单。
 - `artifacts/comparison.json`：两次运行的差值、标签对比、复现信息。
 - `artifacts/report.html`：离线可看的对比报告，包含 mock 免责声明。
+- `artifacts/repeat.json` / `repeat_report.html`：同配置重复 3 次的逐次引用、均值/极差与稳定性声明。
 - `artifacts/registry/`：示例运行使用的不可变提示词版本。
 
 ## 测试
@@ -150,7 +172,7 @@ export OPENAI_MODEL="your-model"
 python -m unittest discover -s tests -q
 ```
 
-35 项测试覆盖：版本不可变与内容哈希、模板变量校验、数据哈希、三项指标与标签汇总、失败隔离、超时与重试、永久 4xx 不重试、保留字段拒绝、成本估算与对比差值、定价非法值拒绝、HTML 转义与报告免责声明。
+39 项测试覆盖：版本不可变与内容哈希、模板变量校验、数据哈希、三项指标与标签汇总、失败隔离、超时与重试、永久 4xx 不重试、保留字段拒绝、成本估算与对比差值、定价非法值拒绝、重复运行均值/极差与逐次引用、复现判定、非法重复次数拒绝、HTML 转义与报告免责声明。
 
 ## 限制
 
@@ -159,4 +181,5 @@ python -m unittest discover -s tests -q
 - 数据集需要人工准备与标注；没有主动学习、采样或标注界面。
 - 未实现多模型并行对比与在线服务化。
 - 成本为字符启发式估算，不是 tokenizer 精确计数，也不代表供应商账单。
+- 重复运行只展示波动与极差，不提供统计显著性检验或置信区间。
 - 并发运行会降低可复现性；真实结论应固定模型版本并重复实验。

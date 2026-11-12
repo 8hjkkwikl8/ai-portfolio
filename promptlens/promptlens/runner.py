@@ -400,6 +400,117 @@ def run_experiment(
     }
 
 
+def _stat_block(values: list[int | float | None]) -> dict[str, Any]:
+    """对一组重复运行数值给出均值、极值与逐次原始值。
+
+    指标在全部样本都不适用时均值为 None，这类运行不参与统计，
+    但在 values 中保留 None，避免把“不适用”误报为 0。
+    """
+    if not values:
+        raise ValueError("统计样本不能为空")
+    numeric = [value for value in values if value is not None]
+    if not numeric:
+        return {
+            "mean": None,
+            "min": None,
+            "max": None,
+            "range": None,
+            "values": list(values),
+            "samples": 0,
+        }
+    lowest = min(numeric)
+    highest = max(numeric)
+    return {
+        "mean": round(sum(numeric) / len(numeric), 6),
+        "min": lowest,
+        "max": highest,
+        "range": round(highest - lowest, 6),
+        "values": list(values),
+        "samples": len(numeric),
+    }
+
+
+def repeat_experiment(
+    config: Mapping[str, Any],
+    registry: PromptRegistry,
+    repeats: int,
+    *,
+    base_dir: str | Path | None = None,
+    provider: Provider | None = None,
+    sleep: Callable[[float], None] = time.sleep,
+    now: Callable[[], str] = utc_now,
+    perf_counter: Callable[[], float] = time.perf_counter,
+) -> dict[str, Any]:
+    """同一配置重复运行 N 次，汇总均值与极差。
+
+    重复只描述波动，不构成统计显著性结论；mock provider 下各次运行的
+    复现哈希应完全一致，可作为可复现性回归。
+    """
+    if isinstance(repeats, bool) or not isinstance(repeats, int) or repeats < 1:
+        raise ValueError("重复次数 repeats 必须是正整数")
+    runs = [
+        run_experiment(
+            config,
+            registry,
+            base_dir=base_dir,
+            provider=provider,
+            sleep=sleep,
+            now=now,
+            perf_counter=perf_counter,
+        )
+        for _ in range(repeats)
+    ]
+    first = runs[0]
+    metric_stats = {
+        metric: _stat_block([run["summary"]["metrics"][metric]["mean"] for run in runs])
+        for metric in METRIC_NAMES
+    }
+    costs = [run["summary"].get("estimated_total_cost") for run in runs]
+    has_cost = all(value is not None for value in costs)
+    cost_stats = _stat_block(costs) if has_cost else None
+    latency_stats = _stat_block([run["summary"]["total_latency_ms"] for run in runs])
+    failed_stats = _stat_block([run["summary"]["failed"] for run in runs])
+    deterministic = len({run["reproducibility_hash"] for run in runs}) == 1
+    run_refs = [
+        {
+            "index": index,
+            "run_id": run["run_id"],
+            "created_at": run["created_at"],
+            "reproducibility_hash": run["reproducibility_hash"],
+            "metrics": {
+                metric: run["summary"]["metrics"][metric]["mean"] for metric in METRIC_NAMES
+            },
+            "succeeded": run["summary"]["succeeded"],
+            "failed": run["summary"]["failed"],
+            "total_latency_ms": run["summary"]["total_latency_ms"],
+            "estimated_total_cost": run["summary"].get("estimated_total_cost"),
+        }
+        for index, run in enumerate(runs, start=1)
+    ]
+    repeat_identity = {"run_id": first["run_id"], "repeats": repeats}
+    return {
+        "schema_version": 1,
+        "type": "promptlens_repeat",
+        "repeat_id": "rep_" + hashlib.sha256(_canonical(repeat_identity).encode("utf-8")).hexdigest()[:20],
+        "name": first["name"],
+        "created_at": now(),
+        "repeats": repeats,
+        "deterministic_outputs": deterministic,
+        "notice": "重复运行只描述同一配置下的指标波动，不代表统计显著性；重复次数不是独立样本量。",
+        "manifest": {**first["manifest"], "repeats": repeats},
+        "runs": run_refs,
+        "summary": {
+            "metrics": metric_stats,
+            "estimated_total_cost": cost_stats,
+            "cost_currency": first["summary"].get("cost_currency") if has_cost else None,
+            "cost_is_estimate": has_cost,
+            "total_latency_ms": latency_stats,
+            "failed": failed_stats,
+            "total": first["summary"]["total"],
+        },
+    }
+
+
 def _load_run(value: Mapping[str, Any] | str | Path) -> dict[str, Any]:
     if isinstance(value, (str, Path)):
         raw = json.loads(Path(value).read_text(encoding="utf-8"))
