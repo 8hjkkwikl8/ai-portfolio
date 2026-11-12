@@ -133,3 +133,7 @@ export OPENAI_MODEL="your-model"
 ```
 
 InsightRAG calls online generation only when a query explicitly includes `"online": true`. For PromptLens, set `provider` to `openai_compatible` in the run config. DataChat BI enables its LLM planner when `OPENAI_API_KEY` and `OPENAI_MODEL` are present, but candidate SQL must still pass the same guard and read-only execution layer.
+
+## Contributing and License
+
+Reproducible improvements with clear engineering boundaries are welcome. Read the [contributing guide](CONTRIBUTING.md) and [code of conduct](CODE_OF_CONDUCT.md) before participating. This project is available under the [MIT License](LICENSE).

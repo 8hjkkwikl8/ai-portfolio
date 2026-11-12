@@ -131,3 +131,7 @@ export OPENAI_MODEL="your-model"
 ```
 
 InsightRAG 在查询请求中显式传 `"online": true` 才会调用在线生成；PromptLens 将运行配置的 `provider` 改为 `openai_compatible`；DataChat BI 检测到 `OPENAI_API_KEY` 与 `OPENAI_MODEL` 后启用 LLM 规划器，但候选 SQL 仍必须通过同一套守护与只读执行层。
+
+## 贡献与许可证
+
+欢迎提交可复现、边界清晰的改进。开始前请阅读[贡献指南](CONTRIBUTING.md)与[行为准则](CODE_OF_CONDUCT.md)。本项目采用 [MIT License](LICENSE)。
