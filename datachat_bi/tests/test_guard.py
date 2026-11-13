@@ -85,6 +85,26 @@ class SQLGuardTests(unittest.TestCase):
         self.assert_rejected("SELECT orders.password FROM orders")
         self.assert_rejected("SELECT o.password FROM orders AS o")
 
+    def test_join_on_whitelisted_tables_is_allowed(self) -> None:
+        guarded = self.guard.validate(
+            "SELECT p.product_line, ROUND(SUM(o.revenue), 2) AS total_revenue "
+            "FROM orders o JOIN products p ON o.category = p.category "
+            "GROUP BY p.product_line"
+        )
+        self.assertIn("JOIN products p", guarded.sql)
+        self.assertTrue(guarded.sql.endswith("LIMIT 25"))
+
+    def test_join_rejects_unlisted_tables_and_columns(self) -> None:
+        for statement in (
+            "SELECT * FROM orders o JOIN secrets s ON o.category = s.category",
+            "SELECT * FROM products p JOIN sqlite_master m ON 1 = 1",
+            "SELECT p.password FROM products p",
+            "SELECT c.unknown_column FROM channels c",
+            "SELECT * FROM main.products",
+            "SELECT * FROM products, secrets",
+        ):
+            self.assert_rejected(statement)
+
     def test_non_select_is_rejected(self) -> None:
         for statement in ("VALUES(1)", "EXPLAIN SELECT * FROM orders", "BEGIN TRANSACTION"):
             self.assert_rejected(statement)

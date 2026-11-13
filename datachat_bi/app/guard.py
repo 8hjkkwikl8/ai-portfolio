@@ -18,7 +18,17 @@ TABLE_SCHEMA: dict[str, dict[str, str]] = {
         "channel": "TEXT",
         "quantity": "INTEGER",
         "revenue": "REAL",
-    }
+    },
+    "products": {
+        "category": "TEXT",
+        "product_line": "TEXT",
+        "warranty_days": "INTEGER",
+    },
+    "channels": {
+        "channel": "TEXT",
+        "channel_type": "TEXT",
+        "commission_rate": "REAL",
+    },
 }
 
 # authorizer 与预检共用白名单。未列出的函数一律拒绝，而不是依赖黑名单。
@@ -356,8 +366,10 @@ def _validate_tables_and_columns(tokens: Sequence[Token], cte_names: set[str]) -
                 raise SQLGuardError("查询包含未授权的数据表。")
             if i + 1 < len(tokens) and tokens[i + 1].value == ".":
                 raise SQLGuardError("不允许使用数据库 schema 限定表名。")
-            if table_name == "orders":
-                aliases[token.value.casefold()] = "orders"
+            if table_name in TABLE_SCHEMA:
+                # 只有白名单物理表才登记别名；CTE 与派生表不参与列归属校验，
+                # 其列最终仍由 SQLite authorizer 按真实表逐列授权。
+                aliases[token.value.casefold()] = table_name
                 next_index = i + 1
                 if next_index < len(tokens) and tokens[next_index].upper == "AS":
                     next_index += 1
@@ -368,7 +380,7 @@ def _validate_tables_and_columns(tokens: Sequence[Token], cte_names: set[str]) -
                         and possible_alias.value.casefold() not in ALIAS_STOP_WORDS
                         and possible_alias.value.casefold() not in allowed_tables
                     ):
-                        aliases[possible_alias.value.casefold()] = "orders"
+                        aliases[possible_alias.value.casefold()] = table_name
             states[depth] = "in_from"
             continue
         if state == "in_from":
@@ -377,15 +389,18 @@ def _validate_tables_and_columns(tokens: Sequence[Token], cte_names: set[str]) -
             elif value == ",":
                 states[depth] = "expect_table"
 
-    orders_columns = set(TABLE_SCHEMA["orders"])
     for i in range(1, len(tokens) - 1):
         if tokens[i].value != ".":
             continue
         owner = tokens[i - 1]
         column = tokens[i + 1]
-        if owner.kind == "IDENT" and aliases.get(owner.value.casefold()) == "orders":
-            if column.kind == "IDENT" and column.value.casefold() not in orders_columns:
-                raise SQLGuardError("查询包含 orders 表中不存在或未授权的列。")
+        if owner.kind != "IDENT":
+            continue
+        table = aliases.get(owner.value.casefold())
+        if table is None:
+            continue
+        if column.kind == "IDENT" and column.value.casefold() not in TABLE_SCHEMA[table]:
+            raise SQLGuardError(f"查询包含 {table} 表中不存在或未授权的列。")
 
 
 NON_FUNCTION_PAREN_WORDS = frozenset(

@@ -15,6 +15,8 @@ from .guard import ALLOWED_FUNCTIONS, TABLE_SCHEMA, GuardedQuery, SQLGuard
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DB_PATH = PROJECT_ROOT / "examples" / "datachat_demo.db"
 DEFAULT_CSV_PATH = PROJECT_ROOT / "examples" / "orders.csv"
+DEFAULT_PRODUCTS_PATH = PROJECT_ROOT / "examples" / "products.csv"
+DEFAULT_CHANNELS_PATH = PROJECT_ROOT / "examples" / "channels.csv"
 DEFAULT_SCHEMA_PATH = PROJECT_ROOT / "examples" / "schema.sql"
 
 
@@ -37,10 +39,55 @@ class QueryResult:
         return len(self.rows)
 
 
+def _load_dimension_rows(
+    path: str | os.PathLike[str], table: str
+) -> tuple[list[tuple[object, ...]], set[str]]:
+    """读取维度 CSV，按 schema 声明转换类型并校验主键唯一。"""
+
+    source_path = Path(path).expanduser().resolve()
+    required = list(TABLE_SCHEMA[table])
+    with source_path.open("r", encoding="utf-8", newline="") as handle:
+        source_rows = list(csv.DictReader(handle))
+    if not source_rows:
+        raise ValueError(f"{source_path.name} 至少需要一行维度数据")
+    if list(source_rows[0]) != required:
+        raise ValueError(f"{source_path.name} 表头与内置 schema 不一致")
+
+    rows: list[tuple[object, ...]] = []
+    keys: set[str] = set()
+    for line_number, row in enumerate(source_rows, start=2):
+        key = row[required[0]].strip()
+        if not key or key in keys:
+            raise ValueError(f"{source_path.name} 第 {line_number} 行主键为空或重复")
+        keys.add(key)
+        values: list[object] = [key]
+        for column in required[1:]:
+            raw = row[column].strip()
+            kind = TABLE_SCHEMA[table][column]
+            try:
+                if kind == "INTEGER":
+                    value: object = int(raw)
+                elif kind == "REAL":
+                    value = float(raw)
+                else:
+                    value = raw
+            except ValueError as exc:
+                raise ValueError(
+                    f"{source_path.name} 第 {line_number} 行 {column} 格式错误"
+                ) from exc
+            if isinstance(value, (int, float)) and value < 0:
+                raise ValueError(f"{source_path.name} 第 {line_number} 行不能包含负数")
+            values.append(value)
+        rows.append(tuple(values))
+    return rows, keys
+
+
 def create_demo_database(
     path: str | os.PathLike[str] = DEFAULT_DB_PATH,
     *,
     csv_path: str | os.PathLike[str] = DEFAULT_CSV_PATH,
+    products_path: str | os.PathLike[str] = DEFAULT_PRODUCTS_PATH,
+    channels_path: str | os.PathLike[str] = DEFAULT_CHANNELS_PATH,
     schema_path: str | os.PathLike[str] = DEFAULT_SCHEMA_PATH,
     overwrite: bool = True,
 ) -> Path:
@@ -54,6 +101,9 @@ def create_demo_database(
             return database_path
         database_path.unlink()
     database_path.parent.mkdir(parents=True, exist_ok=True)
+
+    product_rows, product_categories = _load_dimension_rows(products_path, "products")
+    channel_rows, channel_names = _load_dimension_rows(channels_path, "channels")
 
     with source_csv.open("r", encoding="utf-8", newline="") as handle:
         source_rows = list(csv.DictReader(handle))
@@ -77,6 +127,10 @@ def create_demo_database(
             raise ValueError(f"CSV 第 {line_number} 行数值格式错误") from exc
         if quantity < 0 or revenue < 0:
             raise ValueError(f"CSV 第 {line_number} 行不能包含负数")
+        if row["category"] not in product_categories:
+            raise ValueError(f"CSV 第 {line_number} 行 category 不在 products 维度中")
+        if row["channel"] not in channel_names:
+            raise ValueError(f"CSV 第 {line_number} 行 channel 不在 channels 维度中")
         rows.append(
             (
                 order_id,
@@ -93,6 +147,16 @@ def create_demo_database(
     connection = sqlite3.connect(database_path)
     try:
         connection.executescript(schema_sql)
+        for table, dimension_rows in (
+            ("products", product_rows),
+            ("channels", channel_rows),
+        ):
+            columns = list(TABLE_SCHEMA[table])
+            placeholders = ", ".join("?" for _ in columns)
+            connection.executemany(
+                f"INSERT INTO {table} ({', '.join(columns)}) VALUES ({placeholders})",
+                dimension_rows,
+            )
         placeholders = ", ".join("?" for _ in required)
         columns = ", ".join(required)
         connection.executemany(
@@ -121,8 +185,9 @@ def _read_only_authorizer(
 
     词法扫描只能理解常见语法，无法覆盖 SQLite 的全部解析细节、CTE 展开和
     函数解析。因此必须在数据库层按“实际动作”授权：默认拒绝，仅放行 SELECT、
-    orders 白名单列读取及安全函数。即使攻击 SQL 绕过文本检查，写操作也会在这里
-    被 SQLITE_DENY 拦截；mode=ro 与 query_only=ON 还提供独立兜底。
+    orders / products / channels 白名单列读取及安全函数。即使攻击 SQL 绕过文本
+    检查，写操作也会在这里被 SQLITE_DENY 拦截；mode=ro 与 query_only=ON 还提供
+    独立兜底。
     """
 
     del database_name, trigger_or_view
@@ -131,8 +196,11 @@ def _read_only_authorizer(
     if action == sqlite3.SQLITE_READ:
         table = (arg1 or "").casefold()
         column = (arg2 or "").casefold()
+        allowed_columns = TABLE_SCHEMA.get(table)
         # COUNT(*) 等整行操作可能使用空列名；真实列仍逐项校验。
-        if table == "orders" and (not column or column in TABLE_SCHEMA["orders"]):
+        if allowed_columns is not None and (
+            not column or column in allowed_columns
+        ):
             return sqlite3.SQLITE_OK
         return sqlite3.SQLITE_DENY
     if action == sqlite3.SQLITE_FUNCTION:

@@ -17,7 +17,7 @@ python -m pip install -r requirements.txt
 python verify_all.py
 ```
 
-`verify_all.py` 会运行 117 项自动化测试和三个离线演示，并重新生成部分演示产物。提交前请检查 diff，只保留与本次改动相关的文件。
+`verify_all.py` 会运行 122 项自动化测试和三个离线演示，并重新生成部分演示产物。提交前请检查 diff，只保留与本次改动相关的文件。
 
 也可以只运行受影响的项目：
 

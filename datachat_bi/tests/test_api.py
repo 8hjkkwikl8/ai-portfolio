@@ -49,7 +49,28 @@ class APITests(unittest.TestCase):
         self.assertEqual(schema.status_code, 200)
         self.assertEqual(schema.json()["tables"][0]["name"], "orders")
         self.assertEqual(len(schema.json()["tables"][0]["columns"]), 7)
+        self.assertEqual(
+            [table["name"] for table in schema.json()["tables"]],
+            ["orders", "products", "channels"],
+        )
         self.assertEqual(schema.json()["max_rows"], 20)
+
+    def test_join_question_end_to_end(self) -> None:
+        response = self.client.post("/api/query", json={"question": "各产品线销售额"})
+        self.assertEqual(response.status_code, 200, response.text)
+        data = response.json()
+        self.assertEqual(data["columns"][:2], ["product_line", "total_revenue"])
+        self.assertEqual(data["row_count"], 4)
+        self.assertIn("JOIN products", data["sql"])
+
+        channel_response = self.client.post(
+            "/api/query", json={"question": "各渠道类型销售额"}
+        )
+        self.assertEqual(channel_response.status_code, 200, channel_response.text)
+        self.assertEqual(
+            channel_response.json()["columns"][:2], ["channel_type", "total_revenue"]
+        )
+        self.assertEqual(channel_response.json()["row_count"], 4)
 
     def test_root_is_chinese_ui(self) -> None:
         response = self.client.get("/")

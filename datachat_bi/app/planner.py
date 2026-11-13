@@ -21,6 +21,8 @@ EXAMPLE_QUESTIONS: tuple[str, ...] = (
     "销量最高的商品类别是什么？",
     "哪个渠道销量最高？",
     "各渠道销售额对比",
+    "各产品线销售额",
+    "各渠道类型销售额",
 )
 
 # 离线 planner 是显式问法路由器，不冒充任意自然语言理解。只有完整命中
@@ -51,6 +53,14 @@ _QUESTION_ALIASES = {
     "channel": (
         "各渠道销售额对比", "按渠道销售额排行", "不同渠道收入比较",
         "销售额按渠道对比", "salesbychannel",
+    ),
+    "product_line": (
+        "各产品线销售额", "按产品线销售额", "产品线销售额对比",
+        "不同产品线收入比较", "各产品线营收", "salesbyproductline",
+    ),
+    "channel_type": (
+        "各渠道类型销售额", "按渠道类型销售额", "渠道类型销售额对比",
+        "不同渠道类型收入比较", "各渠道类型营收", "salesbychanneltype",
     ),
     "total": (
         "总销售额是多少", "总销售额", "销售总额", "总收入是多少", "总收入",
@@ -211,6 +221,40 @@ class RulePlanner:
                 self.mode,
             )
 
+        if intent == "product_line":
+            sql = (
+                "SELECT p.product_line AS product_line, "
+                "ROUND(SUM(o.revenue), 2) AS total_revenue, "
+                "SUM(o.quantity) AS total_quantity "
+                "FROM orders o JOIN products p ON o.category = p.category"
+                f"{where} GROUP BY p.product_line ORDER BY total_revenue DESC, product_line ASC"
+            )
+            return QueryPlan(
+                question,
+                sql,
+                params,
+                "按 products 维度的产品线汇总订单销售额和销量。",
+                ChartSpec("bar", "product_line", "total_revenue", "各产品线销售额"),
+                self.mode,
+            )
+
+        if intent == "channel_type":
+            sql = (
+                "SELECT c.channel_type AS channel_type, "
+                "ROUND(SUM(o.revenue), 2) AS total_revenue, "
+                "SUM(o.quantity) AS total_quantity "
+                "FROM orders o JOIN channels c ON o.channel = c.channel"
+                f"{where} GROUP BY c.channel_type ORDER BY total_revenue DESC, channel_type ASC"
+            )
+            return QueryPlan(
+                question,
+                sql,
+                params,
+                "按 channels 维度的渠道类型汇总订单销售额和销量。",
+                ChartSpec("bar", "channel_type", "total_revenue", "各渠道类型销售额"),
+                self.mode,
+            )
+
         if intent == "total":
             sql = (
                 "SELECT ROUND(COALESCE(SUM(revenue), 0), 2) AS total_revenue, "
@@ -252,12 +296,17 @@ class OpenAICompatiblePlanner:
     def plan(self, question: str) -> QueryPlan:
         if not question.strip():
             raise PlannerError("请输入一个明确的问题。")
-        schema = ", ".join(f"{name} {kind}" for name, kind in TABLE_SCHEMA["orders"].items())
+        schema_lines = [
+            f"{table}(" + ", ".join(f"{name} {kind}" for name, kind in columns.items()) + ")"
+            for table, columns in TABLE_SCHEMA.items()
+        ]
         system_prompt = (
             "你是 SQLite 只读分析 SQL 生成器。只输出 JSON 对象，不要 Markdown、解释或注释。"
             '格式为 {"sql":"SELECT ... WHERE category = ?","params":["筛选值"]}；无筛选时 params 为 []。'
-            "sql 只允许一条 SELECT/WITH，只能查询 orders 表，禁止写操作、PRAGMA、ATTACH、多语句和危险函数。"
-            f"orders 列：{schema}。订单日期是 YYYY-MM-DD 文本。"
+            "sql 只允许一条 SELECT/WITH，只能查询以下白名单表，禁止写操作、PRAGMA、ATTACH、多语句和危险函数。"
+            f"表结构：{'；'.join(schema_lines)}。订单日期是 YYYY-MM-DD 文本。"
+            "只允许在白名单表之间按 orders.category = products.category、"
+            "orders.channel = channels.channel 做 JOIN，不允许其他连接条件或未授权表。"
             "聚合时使用明确别名，如 month、total_revenue、total_quantity；结果最多 200 行。"
             "所有来自问题的筛选值必须放入 params，并在 sql 中用 ? 占位，绝不直接拼成 SQL 字面量。"
             "LIMIT 使用非负整数字面量，不使用参数。"

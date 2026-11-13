@@ -23,7 +23,7 @@
 ```bash
 python -m pip install -r requirements.txt
 
-# 重建 48 行演示库，运行 7 类问题并生成图表报告
+# 重建 48 行演示库，运行 9 类问题并生成图表报告
 python demo.py
 
 # 启动中文 Web UI 与 API
@@ -31,11 +31,11 @@ python -m app.api --port 8002
 # 打开 http://127.0.0.1:8002
 ```
 
-`demo.py` 会生成 `datachat_report.html`，其中包含结果表格和 6 幅内联 SVG 图表，可直接离线打开。
+`demo.py` 会生成 `datachat_report.html`，其中包含结果表格和 8 幅内联 SVG 图表，可直接离线打开。
 
 ## 支持的离线问法
 
-规则规划器覆盖以下 7 类问题及其列出的别名：
+规则规划器覆盖以下 9 类问题及其列出的别名：
 
 | 问题 | 结果 |
 | --- | --- |
@@ -46,6 +46,8 @@ python -m app.api --port 8002
 | 销量最高的商品类别是什么？ | 智能家居 |
 | 哪个渠道销量最高？ | 天猫 |
 | 各渠道销售额对比 | 各渠道销售额柱状图 |
+| 各产品线销售额 | `orders JOIN products` 后按产品线汇总 |
+| 各渠道类型销售额 | `orders JOIN channels` 后按渠道类型汇总 |
 
 可以附加**一个**年份，例如“2024 年总销售额”，年份会作为绑定参数传入。出现未消费的额外条件（如“仅看华东”“只看线上渠道”）、多个年份或无法完整匹配的问法时，规划器会明确报错，而不是生成一条忽略条件的 SQL。
 
@@ -84,7 +86,8 @@ python -m app.api --no-audit-log --port 8002
 | --- | --- |
 | 词法与结构 | 只允许单条 `SELECT`/`WITH`；拒绝注释、多语句、控制字符、未闭合引号 |
 | 关键字 | 拒绝 `INSERT`、`UPDATE`、`DELETE`、`DROP`、`ATTACH`、`PRAGMA` 等写操作与危险语句 |
-| 对象白名单 | 仅允许 `orders` 表与已声明列；函数采用白名单，未列出的函数直接拒绝 |
+| 对象白名单 | 仅允许 `orders`、`products`、`channels` 三张表与各自已声明列；函数采用白名单，未列出的函数直接拒绝 |
+| JOIN | 只允许白名单表之间的内连接；别名校验仍归属到真实表，跨表未知列会被预检拒绝，未授权表由 authorizer 兜底 |
 | 参数 | 仅接受位置参数序列，值通过绑定传入；禁止字典参数与字符串拼接 |
 | 行数 | 自动追加 `LIMIT`；已有 `LIMIT` 超过上限时收紧，拒绝逗号分页语法 |
 | 连接 | SQLite `mode=ro` 只读 URI + `PRAGMA query_only` |
@@ -106,9 +109,9 @@ python -m app.api --no-audit-log --port 8002
 
 ## 数据与图表
 
-`examples/orders.csv` 包含 48 行确定性订单，字段为 `order_id`、`order_date`、`category`、`region`、`channel`、`quantity`、`revenue`。`examples/generate_data.py` 可重新生成数据，`demo.py` 每次从 CSV 重建数据库，保证结果可复现。
+`examples/orders.csv` 包含 48 行确定性订单，字段为 `order_id`、`order_date`、`category`、`region`、`channel`、`quantity`、`revenue`。`examples/products.csv`（4 行）与 `examples/channels.csv`（4 行）提供产品线与渠道类型维度，订单通过 `category`、`channel` 外键引用。`examples/generate_data.py` 可重新生成三份 CSV（固定 LF，无随机数），`demo.py` 每次从 CSV 重建数据库，保证结果可复现。
 
-报告中的 6 幅 SVG 图表由查询结果直接生成，动态文本经过转义，避免把数据内容当作 HTML 注入。
+报告中的 8 幅 SVG 图表由查询结果直接生成，动态文本经过转义，避免把数据内容当作 HTML 注入。
 
 ## 接入 LLM 规划器（可选）
 
@@ -127,11 +130,11 @@ python -m app.api --port 8002
 python -m unittest discover -s tests -q
 ```
 
-53 项测试覆盖：SQL 守护绕过、注释与多语句拒绝、表白名单、列校验、函数白名单、参数绑定、LIMIT 收紧、authorizer、查询超时、只读连接、规则问法完整匹配、额外条件与多年份拒绝、SVG 转义、API 契约，以及审计字段、SQL 哈希、密钥与参数脱敏、失败事件记录。
+58 项测试覆盖：SQL 守护绕过、注释与多语句拒绝、表白名单、列校验、白名单 JOIN 与越权表/列拒绝、函数白名单、参数绑定、LIMIT 收紧、authorizer、查询超时、只读连接、维度数据引用完整性、规则问法完整匹配、额外条件与多年份拒绝、SVG 转义、API 契约，以及审计字段、SQL 哈希、密钥与参数脱敏、失败事件记录。
 
 ## 限制
 
-- 仅支持单表 `orders` 的演示 schema，不含 JOIN 多表业务模型。
+- 演示 schema 只有 `orders`、`products`、`channels` 三张表；JOIN 仅支持白名单表与已验证的一对多维度关系，不含任意业务模型或子查询下的复杂连接。
 - 离线规划器只覆盖明确问法；复杂分析需要 LLM 模式和人工复核。
 - 无账号、权限与多租户隔离，仅适合本机演示；审计日志是可删除的本地 JSONL，不具备防篡改、集中检索或生产级告警能力。
 - SQLite 的并发与查询能力有限，不代表生产数据仓库。

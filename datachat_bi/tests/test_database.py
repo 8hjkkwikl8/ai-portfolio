@@ -55,6 +55,28 @@ class ReadOnlyDatabaseTests(unittest.TestCase):
         self.assertEqual(result.row_count, 4)
         self.assertEqual(result.columns, ["region", "qty"])
 
+    def test_join_across_whitelisted_tables_executes(self) -> None:
+        result = self.database.execute(
+            "SELECT p.product_line, ROUND(SUM(o.revenue), 2) AS total_revenue "
+            "FROM orders o JOIN products p ON o.category = p.category "
+            "GROUP BY p.product_line ORDER BY total_revenue DESC"
+        )
+        self.assertEqual(result.columns, ["product_line", "total_revenue"])
+        self.assertEqual(result.row_count, 4)
+        self.assertTrue(all(row[1] > 0 for row in result.rows))
+
+    def test_demo_data_rejects_orders_with_unknown_dimension(self) -> None:
+        products_path = Path(self.temporary_directory.name) / "partial_products.csv"
+        products_path.write_text(
+            "category,product_line,warranty_days\n厨房电器,厨房烹饪,365\n",
+            encoding="utf-8",
+        )
+        with self.assertRaises(ValueError):
+            create_demo_database(
+                Path(self.temporary_directory.name) / "invalid.db",
+                products_path=products_path,
+            )
+
     def test_connection_is_read_only_for_drop_and_attach(self) -> None:
         connection = self.database.connect_read_only()
         try:

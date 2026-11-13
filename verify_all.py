@@ -38,7 +38,7 @@ def main() -> int:
     except subprocess.CalledProcessError as exc:
         print(f"\n验证失败：{exc.cmd} 返回 {exc.returncode}", file=sys.stderr)
         return exc.returncode or 1
-    print("\n全部通过：117 项自动化测试及三个离线演示均已成功完成。")
+    print("\n全部通过：122 项自动化测试及三个离线演示均已成功完成。")
     return 0
 
 

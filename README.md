@@ -3,7 +3,7 @@
 中文 | [English](README.en.md)
 
 ![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-117%20passing-176b4d)
+![Tests](https://img.shields.io/badge/tests-122%20passing-176b4d)
 ![Offline](https://img.shields.io/badge/demo-offline--first-102b25)
 ![CI](https://github.com/8hjkkwikl8/ai-portfolio/actions/workflows/ci.yml/badge.svg)
 
@@ -17,7 +17,7 @@
 | --- | --- | --- | --- | --- |
 | [InsightRAG](insightrag/) | 旗舰 · RAG | 混合检索、可插拔嵌入适配器、证据回放、逐句引用校验、金标评测 | 25 | [评测 JSON](insightrag/artifacts/evaluation.json) |
 | [PromptLens](promptlens/) | 轻量 · LLM 评测 | 不可变提示词版本、可复现实验、失败隔离与重试、成本估算、重复运行稳定性 | 39 | [对比报告](promptlens/artifacts/report.html) |
-| [DataChat BI](datachat_bi/) | 轻量 · AI + 数据安全 | 自然语言到只读 SQL 的完整安全边界 | 53 | [图表报告](datachat_bi/datachat_report.html) |
+| [DataChat BI](datachat_bi/) | 轻量 · AI + 数据安全 | 自然语言到只读 SQL 的完整安全边界，含受控多表 JOIN | 58 | [图表报告](datachat_bi/datachat_report.html) |
 
 ## 快速开始
 
@@ -31,7 +31,7 @@ python -m pip install -r requirements.txt
 # DataChat BI  http://127.0.0.1:8002
 python start_all.py
 
-# 117 项自动化测试 + 三个离线演示，任一失败即返回非零
+# 122 项自动化测试 + 三个离线演示，任一失败即返回非零
 python verify_all.py
 ```
 
@@ -78,13 +78,14 @@ cd datachat_bi  && python demo.py
 让模型生成 SQL 不难，难的是让它只能读、只能碰允许的表，并且不能把用户没说的筛选条件悄悄丢掉。DataChat BI 把安全边界做成多层防线：
 
 - 词法与结构预检：只允许单条 `SELECT`/`WITH`，拒绝注释、多语句、写操作关键字、非白名单函数。
+- 三表白名单（`orders`、`products`、`channels`）与受控 JOIN：仅允许按已验证的维度关系 `orders.category = products.category`、`orders.channel = channels.channel` 连接，拒绝未知表、未知列和逗号连接。
 - 表、列与函数白名单，参数绑定，自动追加或收紧 `LIMIT`。
 - 执行层使用只读 URI、`PRAGMA query_only`、SQLite authorizer 和进度处理器超时，预检被绕过也不是最后一层。
 - 本地 JSONL 审计记录问法、规划模式、候选与最终 SQL 哈希、守护结果、行数及耗时；不记录 SQL、绑定参数或异常原文。
 - 离线规则规划器只匹配完整问法；出现“仅看华东”“只看线上渠道”等额外条件时明确拒绝，而不是静默忽略。
 - 中文 Web UI 与内联 SVG 图表，不依赖外部 CDN。
 
-演示数据为 48 行确定性订单，覆盖 7 类问题、6 幅图表；总销售额 612,360.0，销量最高品类为智能家居，销量最高渠道为天猫。详见 [datachat_bi/README.md](datachat_bi/README.md)。
+演示数据为 48 行确定性订单与两张维度表，覆盖 9 类问题、8 幅图表；总销售额 612,360.0，销量最高品类为智能家居，销量最高渠道为天猫，JOIN 问法可按产品线与渠道类型汇总销售额。详见 [datachat_bi/README.md](datachat_bi/README.md)。
 
 ## 共同的设计原则
 
@@ -100,7 +101,7 @@ cd datachat_bi  && python demo.py
 ai-portfolio/
 ├─ index.html              # 作品集展示页（本地打开）
 ├─ start_all.py            # 启动 InsightRAG 与 DataChat BI，并做健康检查
-├─ verify_all.py           # 117 项测试 + 三个离线演示
+├─ verify_all.py           # 122 项测试 + 三个离线演示
 ├─ requirements.txt
 ├─ insightrag/             # 旗舰：混合检索、引用校验、金标评测
 ├─ promptlens/             # 轻量：提示词版本与可复现评测
@@ -111,7 +112,7 @@ ai-portfolio/
 
 - InsightRAG 的语料是 3 篇演示文档，Recall/MRR 不能外推到生产知识库；引用编号合法率只校验编号，不代表语义忠实度。
 - PromptLens 的示例指标来自 mock provider，只验证流水线，不构成模型质量提升证据。
-- DataChat BI 的 48 行订单与规则问法用于演示安全边界，不是通用自然语言理解；离线模式会拒绝未覆盖的问法。
+- DataChat BI 的 48 行订单与规则问法用于演示安全边界，JOIN 仅限白名单维度关系，不是通用自然语言理解；离线模式会拒绝未覆盖的问法。
 - 三个项目都是单机演示，不含账号体系、权限管理、分布式索引或生产级可观测性。
 
 ## 环境与依赖

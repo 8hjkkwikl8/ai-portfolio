@@ -3,7 +3,7 @@
 [中文](README.md) | English
 
 ![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-117%20passing-176b4d)
+![Tests](https://img.shields.io/badge/tests-122%20passing-176b4d)
 ![Offline](https://img.shields.io/badge/demo-offline--first-102b25)
 ![CI](https://github.com/8hjkkwikl8/ai-portfolio/actions/workflows/ci.yml/badge.svg)
 
@@ -17,7 +17,7 @@ These are not screenshots or concept mockups. Every metric in this repository ca
 | --- | --- | --- | --- | --- |
 | [InsightRAG](insightrag/) | Flagship · RAG | Hybrid retrieval, pluggable embedding adapter, evidence replay, sentence-level citation validation, gold-set evaluation | 25 | [Evaluation JSON](insightrag/artifacts/evaluation.json) |
 | [PromptLens](promptlens/) | Lightweight · LLM evaluation | Immutable prompt versions, reproducible experiments, failure isolation and retries, cost estimation, repeated-run stability | 39 | [Comparison report](promptlens/artifacts/report.html) |
-| [DataChat BI](datachat_bi/) | Lightweight · AI + data safety | A complete safety boundary from natural language to read-only SQL | 53 | [Chart report](datachat_bi/datachat_report.html) |
+| [DataChat BI](datachat_bi/) | Lightweight · AI + data safety | A complete safety boundary from natural language to read-only SQL, including guarded multi-table joins | 58 | [Chart report](datachat_bi/datachat_report.html) |
 
 Sub-project READMEs are currently in Chinese; commands, configuration keys, and artifact formats are language-independent.
 
@@ -33,7 +33,7 @@ python -m pip install -r requirements.txt
 # DataChat BI  http://127.0.0.1:8002
 python start_all.py
 
-# 117 automated tests + three offline demos; exits non-zero on any failure
+# 122 automated tests + three offline demos; exits non-zero on any failure
 python verify_all.py
 ```
 
@@ -80,13 +80,14 @@ In the bundled example, `exact_match` rises from 7.1% to 92.9%. This comes from 
 Getting a model to write SQL is easy; ensuring it can only read, only touch allowlisted tables, and never silently drop user-specified filters is the hard part. DataChat BI implements the safety boundary as multiple layers:
 
 - Lexical and structural pre-checks: a single `SELECT`/`WITH` only; comments, multi-statements, write keywords, and non-allowlisted functions are rejected.
+- A three-table allowlist (`orders`, `products`, `channels`) with guarded joins: only the validated dimension relationships `orders.category = products.category` and `orders.channel = channels.channel` are permitted; unknown tables, unknown columns, and comma joins are rejected.
 - Table, column, and function allowlists, bound parameters, and automatic `LIMIT` injection or tightening.
 - Execution uses a read-only URI, `PRAGMA query_only`, the SQLite authorizer, and progress-handler timeouts — bypassing the pre-check is not the end of the story.
 - Local JSONL audit events record the question, planner mode, candidate and guarded SQL hashes, guard outcome, row count, and latency; raw SQL, bound parameters, and exception messages are excluded.
 - The offline rule planner matches complete question patterns only; extra conditions such as "East China region only" are explicitly rejected rather than silently ignored.
 - Chinese web UI with inline SVG charts and no external CDN dependencies.
 
-Demo data: 48 deterministic orders, 7 question types, 6 charts. Total revenue is 612,360.0; the top category by quantity is smart home (智能家居), and the top channel by quantity is Tmall (天猫). See [datachat_bi/README.md](datachat_bi/README.md) (Chinese).
+Demo data: 48 deterministic orders plus two dimension tables, 9 question types, 8 charts. Total revenue is 612,360.0; the top category by quantity is smart home (智能家居), and the top channel by quantity is Tmall (天猫); join questions aggregate revenue by product line and channel type. See [datachat_bi/README.md](datachat_bi/README.md) (Chinese).
 
 ## Shared Design Principles
 
@@ -102,7 +103,7 @@ Demo data: 48 deterministic orders, 7 question types, 6 charts. Total revenue is
 ai-portfolio/
 ├─ index.html              # Portfolio dashboard (open locally)
 ├─ start_all.py            # Start InsightRAG and DataChat BI with health checks
-├─ verify_all.py           # 117 tests + three offline demos
+├─ verify_all.py           # 122 tests + three offline demos
 ├─ requirements.txt
 ├─ insightrag/             # Flagship: hybrid retrieval, citation validation, gold-set evaluation
 ├─ promptlens/             # Lightweight: prompt versioning and reproducible evaluation
@@ -113,7 +114,7 @@ ai-portfolio/
 
 - InsightRAG's corpus is 3 demo documents; Recall/MRR do not extrapolate to production knowledge bases, and citation-ID validity checks numbering only — it is not semantic faithfulness.
 - PromptLens example metrics come from a mock provider and validate the pipeline only; they are not evidence of model quality improvement.
-- DataChat BI's 48 orders and rule-based phrasings demonstrate a safety boundary, not general natural-language understanding; the offline mode rejects uncovered phrasings.
+- DataChat BI's 48 orders and rule-based phrasings demonstrate a safety boundary; joins are limited to allowlisted dimension relationships and are not general natural-language understanding; the offline mode rejects uncovered phrasings.
 - All three projects are single-machine demos without accounts, access control, distributed indexing, or production-grade observability.
 
 ## Environment and Dependencies

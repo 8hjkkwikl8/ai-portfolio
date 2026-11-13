@@ -1,0 +1,5 @@
+channel,channel_type,commission_rate
+天猫,平台电商,0.08
+京东,自营电商,0.05
+抖音,内容电商,0.12
+线下门店,线下零售,0.0
