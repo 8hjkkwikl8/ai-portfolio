@@ -7,8 +7,10 @@ from dataclasses import dataclass
 import hashlib
 import math
 import re
-from typing import Iterable
+import threading
+from typing import Iterable, Sequence
 
+from .embeddings import Vectorizer, cosine_similarity
 from .store import KnowledgeStore, StoredChunk
 
 
@@ -40,6 +42,7 @@ class HashedNgramVectorizer:
         if dimensions < 16:
             raise ValueError("哈希向量维度至少为 16")
         self.dimensions = dimensions
+        self.name = f"hash-ngram-{dimensions}"
 
     def transform(self, text: str) -> dict[int, float]:
         tokens = tokenize(text)
@@ -60,13 +63,12 @@ class HashedNgramVectorizer:
             vector = {index: value / norm for index, value in vector.items()}
         return vector
 
+    def transform_many(self, texts: Sequence[str]) -> list[dict[int, float]]:
+        return [self.transform(text) for text in texts]
+
     @staticmethod
     def cosine(left: dict[int, float], right: dict[int, float]) -> float:
-        if not left or not right:
-            return 0.0
-        if len(left) > len(right):
-            left, right = right, left
-        return sum(value * right.get(index, 0.0) for index, value in left.items())
+        return cosine_similarity(left, right)
 
 
 class BM25:
@@ -156,13 +158,18 @@ class HybridRetriever:
         rrf_k: int = 60,
         hash_dimensions: int = 256,
         candidate_pool: int = 40,
+        vectorizer: Vectorizer | None = None,
     ) -> None:
         if rrf_k <= 0 or candidate_pool <= 0:
             raise ValueError("rrf_k 和 candidate_pool 必须大于 0")
         self.store = store
         self.rrf_k = rrf_k
-        self.vectorizer = HashedNgramVectorizer(hash_dimensions)
+        self.vectorizer = vectorizer or HashedNgramVectorizer(hash_dimensions)
         self.candidate_pool = candidate_pool
+        # 分块向量按 (key, chunk_id) 缓存：重新导入来源会生成新 key，
+        # 因此不需要手动失效，也不会把旧文本的向量用于新分块。
+        self._vector_cache: dict[tuple[int, str], dict[int, float]] = {}
+        self._vector_lock = threading.Lock()
 
     def search(self, query: str, top_k: int = 5) -> list[SearchResult]:
         if not isinstance(query, str) or not query.strip():
@@ -176,10 +183,10 @@ class HybridRetriever:
 
         documents = [tokenize(chunk.text) for chunk in chunks]
         bm25_scores = BM25(documents).scores(query_tokens)
-        query_vector = self.vectorizer.transform(query)
+        query_vector = self.vectorizer.transform_many([query])[0]
+        chunk_vectors = self._chunk_vectors(chunks)
         vector_scores = [
-            self.vectorizer.cosine(query_vector, self.vectorizer.transform(chunk.text))
-            for chunk in chunks
+            cosine_similarity(query_vector, vector) for vector in chunk_vectors
         ]
         pool_size = min(len(chunks), max(self.candidate_pool, top_k * 4))
 
@@ -233,6 +240,20 @@ class HybridRetriever:
             )
             for citation, index in enumerate(ordered, start=1)
         ]
+
+    def _chunk_vectors(self, chunks: list[StoredChunk]) -> list[dict[int, float]]:
+        keys = [(chunk.key, chunk.chunk_id) for chunk in chunks]
+        with self._vector_lock:
+            missing = [chunk for chunk in chunks if (chunk.key, chunk.chunk_id) not in self._vector_cache]
+        if missing:
+            computed = self.vectorizer.transform_many([chunk.text for chunk in missing])
+            if len(computed) != len(missing):
+                raise ValueError("向量适配器返回的向量数量与输入不一致")
+            with self._vector_lock:
+                for chunk, vector in zip(missing, computed):
+                    self._vector_cache[(chunk.key, chunk.chunk_id)] = vector
+        with self._vector_lock:
+            return [self._vector_cache[key] for key in keys]
 
     @staticmethod
     def _make_result(

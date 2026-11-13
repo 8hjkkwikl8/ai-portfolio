@@ -10,6 +10,7 @@ import sys
 import time
 from typing import Any
 
+from .embeddings import build_embedding_vectorizer_from_env
 from .evaluation import GoldCase, evaluate_cases, load_gold_cases
 from .llm import LLMConfig, answer_question
 from .retrieval import HybridRetriever
@@ -79,7 +80,10 @@ def create_app(
     store = KnowledgeStore(db_path or _default_database())
     if load_samples and int(store.stats()["documents"]) == 0 and SAMPLE_DIR.is_dir():
         store.ingest_directory(SAMPLE_DIR)
-    retriever = HybridRetriever(store)
+    # 未配置 INSIGHTRAG_EMBEDDING_* 时返回 None，保持离线哈希向量且不联网。
+    retriever = HybridRetriever(
+        store, vectorizer=build_embedding_vectorizer_from_env()
+    )
 
     @asynccontextmanager
     async def lifespan(_: Any):
@@ -162,11 +166,18 @@ def create_app(
 
     @service.get("/api/stats")
     def stats() -> dict[str, object]:
+        vectorizer_name = retriever.vectorizer.name
+        notice = (
+            "哈希向量是确定性特征工程，不是神经嵌入。"
+            if vectorizer_name.startswith("hash-ngram")
+            else "已启用神经嵌入适配器；语义召回质量取决于所接模型与数据。"
+        )
         return {
             **store.stats(),
             "sources": store.list_sources(),
-            "retrieval": "BM25 + 轻量哈希 n-gram 向量余弦 + RRF",
-            "embedding_notice": "哈希向量是确定性特征工程，不是神经嵌入。",
+            "retrieval": f"BM25 + {vectorizer_name} 向量余弦 + RRF",
+            "embedding_provider": vectorizer_name,
+            "embedding_notice": notice,
             "online_configured": LLMConfig.from_env().configured,
         }
 

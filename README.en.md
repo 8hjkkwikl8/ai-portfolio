@@ -3,7 +3,7 @@
 [中文](README.md) | English
 
 ![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-106%20passing-176b4d)
+![Tests](https://img.shields.io/badge/tests-117%20passing-176b4d)
 ![Offline](https://img.shields.io/badge/demo-offline--first-102b25)
 ![CI](https://github.com/8hjkkwikl8/ai-portfolio/actions/workflows/ci.yml/badge.svg)
 
@@ -15,7 +15,7 @@ These are not screenshots or concept mockups. Every metric in this repository ca
 
 | Project | Role | Core engineering problem | Tests | Artifacts |
 | --- | --- | --- | --- | --- |
-| [InsightRAG](insightrag/) | Flagship · RAG | Hybrid retrieval, evidence replay, sentence-level citation validation, gold-set evaluation | 14 | [Evaluation JSON](insightrag/artifacts/evaluation.json) |
+| [InsightRAG](insightrag/) | Flagship · RAG | Hybrid retrieval, pluggable embedding adapter, evidence replay, sentence-level citation validation, gold-set evaluation | 25 | [Evaluation JSON](insightrag/artifacts/evaluation.json) |
 | [PromptLens](promptlens/) | Lightweight · LLM evaluation | Immutable prompt versions, reproducible experiments, failure isolation and retries, cost estimation, repeated-run stability | 39 | [Comparison report](promptlens/artifacts/report.html) |
 | [DataChat BI](datachat_bi/) | Lightweight · AI + data safety | A complete safety boundary from natural language to read-only SQL | 53 | [Chart report](datachat_bi/datachat_report.html) |
 
@@ -33,7 +33,7 @@ python -m pip install -r requirements.txt
 # DataChat BI  http://127.0.0.1:8002
 python start_all.py
 
-# 106 automated tests + three offline demos; exits non-zero on any failure
+# 117 automated tests + three offline demos; exits non-zero on any failure
 python verify_all.py
 ```
 
@@ -54,7 +54,7 @@ cd datachat_bi  && python demo.py
 The most common failure of knowledge-base QA is not "no answer" but "a plausible answer with no verifiable basis". InsightRAG separates retrieval, evidence, answering, and metrics into independently inspectable stages:
 
 - Character-offset chunking; every piece of evidence keeps its `source`, `chunk_id`, and original character range, so it can be replayed against the source text.
-- BM25 and a lightweight hashed character n-gram vector run in parallel and are fused with RRF; the hashed vector is not presented as a neural semantic embedding.
+- BM25 and a lightweight hashed character n-gram vector run in parallel and are fused with RRF; the hashed vector is not presented as a neural semantic embedding. Setting `INSIGHTRAG_EMBEDDING_*` switches the vector channel to an OpenAI-compatible embedding endpoint; the default stays fully offline.
 - Offline extractive answering; with an OpenAI-compatible endpoint configured, online generation is available, but sentences without valid citation IDs are filtered out, and the answer falls back to the offline summary if none remain.
 - Gold-set evaluation reports Recall@k, MRR, citation-ID validity, and latency; zero-citation cases are recorded as `N/A` instead of a fake 100%.
 - SQLite persistence with whole-source replacement, so re-ingestion never accumulates duplicate corpus.
@@ -102,7 +102,7 @@ Demo data: 48 deterministic orders, 7 question types, 6 charts. Total revenue is
 ai-portfolio/
 ├─ index.html              # Portfolio dashboard (open locally)
 ├─ start_all.py            # Start InsightRAG and DataChat BI with health checks
-├─ verify_all.py           # 106 tests + three offline demos
+├─ verify_all.py           # 117 tests + three offline demos
 ├─ requirements.txt
 ├─ insightrag/             # Flagship: hybrid retrieval, citation validation, gold-set evaluation
 ├─ promptlens/             # Lightweight: prompt versioning and reproducible evaluation
@@ -134,7 +134,7 @@ export OPENAI_API_KEY="..."        # May be empty for local compatible servers
 export OPENAI_MODEL="your-model"
 ```
 
-InsightRAG calls online generation only when a query explicitly includes `"online": true`. For PromptLens, set `provider` to `openai_compatible` in the run config. DataChat BI enables its LLM planner when `OPENAI_API_KEY` and `OPENAI_MODEL` are present, but candidate SQL must still pass the same guard and read-only execution layer.
+InsightRAG calls online generation only when a query explicitly includes `"online": true`. For PromptLens, set `provider` to `openai_compatible` in the run config. DataChat BI enables its LLM planner when `OPENAI_API_KEY` and `OPENAI_MODEL` are present, but candidate SQL must still pass the same guard and read-only execution layer. InsightRAG's vector channel can switch to a remote embedding service via `INSIGHTRAG_EMBEDDING_BASE_URL`, `INSIGHTRAG_EMBEDDING_MODEL`, and `INSIGHTRAG_EMBEDDING_API_KEY`; if any of the three is missing, the offline hashed vector remains in use.
 
 ## Contributing and License
 

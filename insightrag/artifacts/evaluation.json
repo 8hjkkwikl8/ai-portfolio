@@ -5,7 +5,7 @@
   "mrr": 1.0,
   "citation_id_valid_rate": 1.0,
   "citation_metric_note": "仅校验引用编号合法性，不代表语义忠实度；无引用时记 N/A。",
-  "average_latency_ms": 14.008,
+  "average_latency_ms": 2.67,
   "details": [
     {
       "question": "国内差旅住宿标准是多少？",
@@ -20,7 +20,7 @@
       "valid_citation_ids": 3,
       "total_citation_ids": 3,
       "citation_id_valid_rate": 1.0,
-      "latency_ms": 14.384,
+      "latency_ms": 2.472,
       "answer_mode": "offline"
     },
     {
@@ -37,7 +37,7 @@
       "valid_citation_ids": 3,
       "total_citation_ids": 3,
       "citation_id_valid_rate": 1.0,
-      "latency_ms": 13.799,
+      "latency_ms": 2.482,
       "answer_mode": "offline"
     },
     {
@@ -53,7 +53,7 @@
       "valid_citation_ids": 3,
       "total_citation_ids": 3,
       "citation_id_valid_rate": 1.0,
-      "latency_ms": 13.719,
+      "latency_ms": 2.728,
       "answer_mode": "offline"
     },
     {
@@ -69,7 +69,7 @@
       "valid_citation_ids": 3,
       "total_citation_ids": 3,
       "citation_id_valid_rate": 1.0,
-      "latency_ms": 14.118,
+      "latency_ms": 2.864,
       "answer_mode": "offline"
     },
     {
@@ -85,7 +85,7 @@
       "valid_citation_ids": 2,
       "total_citation_ids": 2,
       "citation_id_valid_rate": 1.0,
-      "latency_ms": 13.871,
+      "latency_ms": 2.46,
       "answer_mode": "offline"
     },
     {
@@ -101,7 +101,7 @@
       "valid_citation_ids": 3,
       "total_citation_ids": 3,
       "citation_id_valid_rate": 1.0,
-      "latency_ms": 13.96,
+      "latency_ms": 2.607,
       "answer_mode": "offline"
     },
     {
@@ -117,7 +117,7 @@
       "valid_citation_ids": 3,
       "total_citation_ids": 3,
       "citation_id_valid_rate": 1.0,
-      "latency_ms": 14.138,
+      "latency_ms": 2.715,
       "answer_mode": "offline"
     },
     {
@@ -134,7 +134,7 @@
       "valid_citation_ids": 2,
       "total_citation_ids": 2,
       "citation_id_valid_rate": 1.0,
-      "latency_ms": 14.083,
+      "latency_ms": 2.66,
       "answer_mode": "offline"
     },
     {
@@ -150,7 +150,7 @@
       "valid_citation_ids": 3,
       "total_citation_ids": 3,
       "citation_id_valid_rate": 1.0,
-      "latency_ms": 14.26,
+      "latency_ms": 2.669,
       "answer_mode": "offline"
     },
     {
@@ -166,7 +166,7 @@
       "valid_citation_ids": 3,
       "total_citation_ids": 3,
       "citation_id_valid_rate": 1.0,
-      "latency_ms": 14.041,
+      "latency_ms": 2.911,
       "answer_mode": "offline"
     },
     {
@@ -183,7 +183,7 @@
       "valid_citation_ids": 3,
       "total_citation_ids": 3,
       "citation_id_valid_rate": 1.0,
-      "latency_ms": 13.909,
+      "latency_ms": 2.767,
       "answer_mode": "offline"
     },
     {
@@ -199,7 +199,7 @@
       "valid_citation_ids": 3,
       "total_citation_ids": 3,
       "citation_id_valid_rate": 1.0,
-      "latency_ms": 13.814,
+      "latency_ms": 2.707,
       "answer_mode": "offline"
     }
   ]

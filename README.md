@@ -3,7 +3,7 @@
 中文 | [English](README.en.md)
 
 ![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-106%20passing-176b4d)
+![Tests](https://img.shields.io/badge/tests-117%20passing-176b4d)
 ![Offline](https://img.shields.io/badge/demo-offline--first-102b25)
 ![CI](https://github.com/8hjkkwikl8/ai-portfolio/actions/workflows/ci.yml/badge.svg)
 
@@ -15,7 +15,7 @@
 
 | 项目 | 定位 | 核心工程问题 | 测试 | 可查看产物 |
 | --- | --- | --- | --- | --- |
-| [InsightRAG](insightrag/) | 旗舰 · RAG | 混合检索、证据回放、逐句引用校验、金标评测 | 14 | [评测 JSON](insightrag/artifacts/evaluation.json) |
+| [InsightRAG](insightrag/) | 旗舰 · RAG | 混合检索、可插拔嵌入适配器、证据回放、逐句引用校验、金标评测 | 25 | [评测 JSON](insightrag/artifacts/evaluation.json) |
 | [PromptLens](promptlens/) | 轻量 · LLM 评测 | 不可变提示词版本、可复现实验、失败隔离与重试、成本估算、重复运行稳定性 | 39 | [对比报告](promptlens/artifacts/report.html) |
 | [DataChat BI](datachat_bi/) | 轻量 · AI + 数据安全 | 自然语言到只读 SQL 的完整安全边界 | 53 | [图表报告](datachat_bi/datachat_report.html) |
 
@@ -31,7 +31,7 @@ python -m pip install -r requirements.txt
 # DataChat BI  http://127.0.0.1:8002
 python start_all.py
 
-# 106 项自动化测试 + 三个离线演示，任一失败即返回非零
+# 117 项自动化测试 + 三个离线演示，任一失败即返回非零
 python verify_all.py
 ```
 
@@ -52,7 +52,7 @@ cd datachat_bi  && python demo.py
 企业知识库问答最常见的问题不是“答不出来”，而是“答错了却找不到依据”。InsightRAG 把检索、证据、回答和指标拆成可独立检查的链路：
 
 - 字符偏移分块，证据保留 `source`、`chunk_id` 和原始字符区间，可回放到原文。
-- BM25 与轻量哈希字符 n-gram 向量并行召回，用 RRF 融合；不冒充神经语义嵌入。
+- BM25 与轻量哈希字符 n-gram 向量并行召回，用 RRF 融合；不冒充神经语义嵌入。配置 `INSIGHTRAG_EMBEDDING_*` 后可切换到 OpenAI 兼容的嵌入接口，默认仍完全离线。
 - 离线抽取式回答；配置 OpenAI 兼容接口后可在线生成，但生成内容必须逐句通过引用编号校验，否则整段回退离线摘要。
 - 金标评测输出 Recall@k、MRR、引用编号合法率与延迟；零引用记 `N/A`，不伪造 100%。
 - SQLite 持久化，按来源整体替换，重复导入不会堆积重复语料。
@@ -100,7 +100,7 @@ cd datachat_bi  && python demo.py
 ai-portfolio/
 ├─ index.html              # 作品集展示页（本地打开）
 ├─ start_all.py            # 启动 InsightRAG 与 DataChat BI，并做健康检查
-├─ verify_all.py           # 106 项测试 + 三个离线演示
+├─ verify_all.py           # 117 项测试 + 三个离线演示
 ├─ requirements.txt
 ├─ insightrag/             # 旗舰：混合检索、引用校验、金标评测
 ├─ promptlens/             # 轻量：提示词版本与可复现评测
@@ -132,7 +132,7 @@ export OPENAI_API_KEY="..."        # 本地兼容服务可留空
 export OPENAI_MODEL="your-model"
 ```
 
-InsightRAG 在查询请求中显式传 `"online": true` 才会调用在线生成；PromptLens 将运行配置的 `provider` 改为 `openai_compatible`；DataChat BI 检测到 `OPENAI_API_KEY` 与 `OPENAI_MODEL` 后启用 LLM 规划器，但候选 SQL 仍必须通过同一套守护与只读执行层。
+InsightRAG 在查询请求中显式传 `"online": true` 才会调用在线生成；PromptLens 将运行配置的 `provider` 改为 `openai_compatible`；DataChat BI 检测到 `OPENAI_API_KEY` 与 `OPENAI_MODEL` 后启用 LLM 规划器，但候选 SQL 仍必须通过同一套守护与只读执行层。InsightRAG 的向量通道可通过 `INSIGHTRAG_EMBEDDING_BASE_URL`、`INSIGHTRAG_EMBEDDING_MODEL`、`INSIGHTRAG_EMBEDDING_API_KEY` 切换到远程嵌入服务，三项缺一即保持离线哈希向量。
 
 ## 贡献与许可证
 
