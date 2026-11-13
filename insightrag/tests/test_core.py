@@ -12,7 +12,9 @@ if str(ROOT) not in sys.path:
 
 from app.chunking import chunk_text
 from app.evaluation import (
+    FaithfulnessAnnotation,
     GoldCase,
+    answer_sha256,
     evaluate_cases,
     load_gold_cases,
     recall_at_k,
@@ -191,6 +193,12 @@ class EvaluationTests(unittest.TestCase):
                 self.assertGreater(report["mrr"], 0.5)
                 self.assertEqual(report["citation_id_valid_rate"], 1.0)
                 self.assertIn("不代表语义忠实度", report["citation_metric_note"])
+                # 样例金标刻意只标注一半，报告必须如实区分已标注与未标注。
+                self.assertEqual(report["faithfulness_labeled_cases"], 6)
+                self.assertEqual(report["faithfulness_unlabeled_cases"], 6)
+                self.assertEqual(report["faithfulness_stale_cases"], 0)
+                self.assertEqual(report["semantic_faithfulness_rate"], 1.0)
+                self.assertIn("不按 1.0 计算", report["faithfulness_metric_note"])
                 self.assertGreater(report["average_latency_ms"], 0)
                 self.assertTrue(
                     all(item["answer_mode"] == "offline" for item in report["details"])
@@ -198,6 +206,102 @@ class EvaluationTests(unittest.TestCase):
                 saved = json.loads(output.read_text(encoding="utf-8"))
                 self.assertEqual(saved["cases"], report["cases"])
                 self.assertIn("details", saved)
+
+    def test_unlabeled_faithfulness_is_na_not_one(self) -> None:
+        with KnowledgeStore(":memory:") as store:
+            store.ingest_document("known.txt", "公司差旅制度。住宿限额为每晚五百元。")
+            report = evaluate_cases(
+                [GoldCase("住宿限额是多少", ("known.txt",))], HybridRetriever(store)
+            )
+        self.assertIsNone(report["semantic_faithfulness_rate"])
+        self.assertEqual(report["faithfulness_labeled_cases"], 0)
+        self.assertEqual(report["faithfulness_unlabeled_cases"], 1)
+        self.assertEqual(report["faithfulness_stale_cases"], 0)
+        self.assertEqual(report["details"][0]["faithfulness_status"], "unlabeled")
+        self.assertIsNone(report["details"][0]["faithfulness"])
+
+    def test_partial_faithfulness_annotations_only_aggregate_labeled(self) -> None:
+        with KnowledgeStore(":memory:") as store:
+            store.ingest_document(
+                "known.txt", "公司差旅制度。住宿限额为每晚五百元。"
+            )
+            retriever = HybridRetriever(store)
+            supported = answer_question(
+                "住宿限额是多少", retriever.search("住宿限额是多少", top_k=3)
+            )
+            # 第二条标注用于验证聚合口径，不代表真实质量判断。
+            partial = answer_question(
+                "报销时限是多久", retriever.search("报销时限是多久", top_k=3)
+            )
+            cases = [
+                GoldCase(
+                    "住宿限额是多少",
+                    ("known.txt",),
+                    FaithfulnessAnnotation(
+                        True, answer_sha256(str(supported["answer"]))
+                    ),
+                ),
+                GoldCase(
+                    "报销时限是多久",
+                    ("known.txt",),
+                    FaithfulnessAnnotation(
+                        False, answer_sha256(str(partial["answer"]))
+                    ),
+                ),
+                GoldCase("远程办公补贴怎么发", ("known.txt",)),
+            ]
+            report = evaluate_cases(cases, retriever)
+        self.assertEqual(report["faithfulness_labeled_cases"], 2)
+        self.assertEqual(report["faithfulness_unlabeled_cases"], 1)
+        self.assertEqual(report["faithfulness_stale_cases"], 0)
+        self.assertEqual(report["semantic_faithfulness_rate"], 0.5)
+        self.assertEqual(report["details"][0]["faithfulness"], True)
+        self.assertEqual(report["details"][1]["faithfulness"], False)
+
+    def test_stale_faithfulness_fingerprint_is_na(self) -> None:
+        stale = FaithfulnessAnnotation(True, "0" * 64)
+        with KnowledgeStore(":memory:") as store:
+            store.ingest_document("known.txt", "公司差旅制度。住宿限额为每晚五百元。")
+            report = evaluate_cases(
+                [GoldCase("住宿限额是多少", ("known.txt",), stale)],
+                HybridRetriever(store),
+            )
+        # 回答变化后旧标注必须失效，而不是继续按 1.0 计入。
+        self.assertIsNone(report["semantic_faithfulness_rate"])
+        self.assertEqual(report["faithfulness_labeled_cases"], 0)
+        self.assertEqual(report["faithfulness_stale_cases"], 1)
+        self.assertEqual(report["details"][0]["faithfulness_status"], "stale")
+        self.assertIsNone(report["details"][0]["faithfulness"])
+
+    def test_invalid_faithfulness_annotations_are_rejected(self) -> None:
+        with self.assertRaises(ValueError):
+            GoldCase.from_dict(
+                {"question": "问", "expected_sources": ["a.txt"], "faithfulness": []}
+            )
+        with self.assertRaises(ValueError):
+            GoldCase.from_dict(
+                {
+                    "question": "问",
+                    "expected_sources": ["a.txt"],
+                    "faithfulness": {"faithful": "true"},
+                }
+            )
+        with self.assertRaises(ValueError):
+            GoldCase.from_dict(
+                {
+                    "question": "问",
+                    "expected_sources": ["a.txt"],
+                    "faithfulness": {"faithful": True, "answer_sha256": "abc"},
+                }
+            )
+        parsed = FaithfulnessAnnotation.from_dict(
+            {"faithful": True, "answer_sha256": "A" * 64}
+        )
+        self.assertEqual(parsed.answer_sha256, "a" * 64)
+        self.assertEqual(
+            GoldCase("问", ("a.txt",), parsed).to_dict()["faithfulness"],
+            {"faithful": True, "answer_sha256": "a" * 64},
+        )
 
     def test_zero_citations_is_na_not_a_perfect_score(self) -> None:
         with KnowledgeStore(":memory:") as store:

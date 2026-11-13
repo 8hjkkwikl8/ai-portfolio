@@ -52,6 +52,8 @@ if BaseModel is not object:
     class EvaluationCaseRequest(BaseModel):
         question: str = Field(min_length=1, max_length=2000)
         expected_sources: list[str] = Field(min_length=1)
+        # 可选人工忠实度标注；字段校验交给 GoldCase，未提供时按 N/A 处理。
+        faithfulness: dict[str, object] | None = None
 
 
     class EvaluateRequest(BaseModel):
@@ -156,6 +158,7 @@ def create_app(
                         {
                             "question": item.question,
                             "expected_sources": item.expected_sources,
+                            "faithfulness": item.faithfulness,
                         }
                     )
                     for item in payload.cases

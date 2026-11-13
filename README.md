@@ -3,7 +3,7 @@
 中文 | [English](README.en.md)
 
 ![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-122%20passing-176b4d)
+![Tests](https://img.shields.io/badge/tests-127%20passing-176b4d)
 ![Offline](https://img.shields.io/badge/demo-offline--first-102b25)
 ![CI](https://github.com/8hjkkwikl8/ai-portfolio/actions/workflows/ci.yml/badge.svg)
 
@@ -15,7 +15,7 @@
 
 | 项目 | 定位 | 核心工程问题 | 测试 | 可查看产物 |
 | --- | --- | --- | --- | --- |
-| [InsightRAG](insightrag/) | 旗舰 · RAG | 混合检索、可插拔嵌入适配器、证据回放、逐句引用校验、金标评测 | 25 | [评测 JSON](insightrag/artifacts/evaluation.json) |
+| [InsightRAG](insightrag/) | 旗舰 · RAG | 混合检索、可插拔嵌入适配器、证据回放、逐句引用校验、人工忠实度与金标评测 | 30 | [评测 JSON](insightrag/artifacts/evaluation.json) |
 | [PromptLens](promptlens/) | 轻量 · LLM 评测 | 不可变提示词版本、可复现实验、失败隔离与重试、成本估算、重复运行稳定性 | 39 | [对比报告](promptlens/artifacts/report.html) |
 | [DataChat BI](datachat_bi/) | 轻量 · AI + 数据安全 | 自然语言到只读 SQL 的完整安全边界，含受控多表 JOIN | 58 | [图表报告](datachat_bi/datachat_report.html) |
 
@@ -31,7 +31,7 @@ python -m pip install -r requirements.txt
 # DataChat BI  http://127.0.0.1:8002
 python start_all.py
 
-# 122 项自动化测试 + 三个离线演示，任一失败即返回非零
+# 127 项自动化测试 + 三个离线演示，任一失败即返回非零
 python verify_all.py
 ```
 
@@ -54,10 +54,10 @@ cd datachat_bi  && python demo.py
 - 字符偏移分块，证据保留 `source`、`chunk_id` 和原始字符区间，可回放到原文。
 - BM25 与轻量哈希字符 n-gram 向量并行召回，用 RRF 融合；不冒充神经语义嵌入。配置 `INSIGHTRAG_EMBEDDING_*` 后可切换到 OpenAI 兼容的嵌入接口，默认仍完全离线。
 - 离线抽取式回答；配置 OpenAI 兼容接口后可在线生成，但生成内容必须逐句通过引用编号校验，否则整段回退离线摘要。
-- 金标评测输出 Recall@k、MRR、引用编号合法率与延迟；零引用记 `N/A`，不伪造 100%。
+- 金标评测输出 Recall@k、MRR、引用编号合法率、人工忠实度与延迟；忠实度按回答 SHA-256 指纹匹配人工标注，未标注或指纹失效记 `N/A`，零引用同样不伪造 100%。
 - SQLite 持久化，按来源整体替换，重复导入不会堆积重复语料。
 
-演示集为 3 篇中文制度文档、13 个分块、12 条金标问题。当前结果 Recall@3 = 1.0、MRR = 1.0、引用编号合法率 = 1.0、平均延迟约 14 ms（随本机环境浮动），仅用于验证链路，不代表生产语料效果。详见 [insightrag/README.md](insightrag/README.md)。
+演示集为 3 篇中文制度文档、13 个分块、12 条金标问题。当前结果 Recall@3 = 1.0、MRR = 1.0、引用编号合法率 = 1.0、人工忠实度 = 1.0（仅 6/12 条有人工标注，其余记 `N/A`）、平均延迟约 14 ms（随本机环境浮动），仅用于验证链路，不代表生产语料效果。详见 [insightrag/README.md](insightrag/README.md)。
 
 ### PromptLens · 提示词版本管理与可复现评测
 
@@ -101,7 +101,7 @@ cd datachat_bi  && python demo.py
 ai-portfolio/
 ├─ index.html              # 作品集展示页（本地打开）
 ├─ start_all.py            # 启动 InsightRAG 与 DataChat BI，并做健康检查
-├─ verify_all.py           # 122 项测试 + 三个离线演示
+├─ verify_all.py           # 127 项测试 + 三个离线演示
 ├─ requirements.txt
 ├─ insightrag/             # 旗舰：混合检索、引用校验、金标评测
 ├─ promptlens/             # 轻量：提示词版本与可复现评测
@@ -110,7 +110,7 @@ ai-portfolio/
 
 ## 真实性边界
 
-- InsightRAG 的语料是 3 篇演示文档，Recall/MRR 不能外推到生产知识库；引用编号合法率只校验编号，不代表语义忠实度。
+- InsightRAG 的语料是 3 篇演示文档，Recall/MRR 不能外推到生产知识库；引用编号合法率只校验编号，不代表语义忠实度。人工忠实度只覆盖 6 条人工审阅的离线快照，未标注或指纹失效记 N/A，不代表在线生成或生产语义忠实度。
 - PromptLens 的示例指标来自 mock provider，只验证流水线，不构成模型质量提升证据。
 - DataChat BI 的 48 行订单与规则问法用于演示安全边界，JOIN 仅限白名单维度关系，不是通用自然语言理解；离线模式会拒绝未覆盖的问法。
 - 三个项目都是单机演示，不含账号体系、权限管理、分布式索引或生产级可观测性。

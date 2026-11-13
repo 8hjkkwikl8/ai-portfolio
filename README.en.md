@@ -3,7 +3,7 @@
 [中文](README.md) | English
 
 ![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-122%20passing-176b4d)
+![Tests](https://img.shields.io/badge/tests-127%20passing-176b4d)
 ![Offline](https://img.shields.io/badge/demo-offline--first-102b25)
 ![CI](https://github.com/8hjkkwikl8/ai-portfolio/actions/workflows/ci.yml/badge.svg)
 
@@ -15,7 +15,7 @@ These are not screenshots or concept mockups. Every metric in this repository ca
 
 | Project | Role | Core engineering problem | Tests | Artifacts |
 | --- | --- | --- | --- | --- |
-| [InsightRAG](insightrag/) | Flagship · RAG | Hybrid retrieval, pluggable embedding adapter, evidence replay, sentence-level citation validation, gold-set evaluation | 25 | [Evaluation JSON](insightrag/artifacts/evaluation.json) |
+| [InsightRAG](insightrag/) | Flagship · RAG | Hybrid retrieval, pluggable embedding adapter, evidence replay, sentence-level citation validation, human faithfulness and gold-set evaluation | 30 | [Evaluation JSON](insightrag/artifacts/evaluation.json) |
 | [PromptLens](promptlens/) | Lightweight · LLM evaluation | Immutable prompt versions, reproducible experiments, failure isolation and retries, cost estimation, repeated-run stability | 39 | [Comparison report](promptlens/artifacts/report.html) |
 | [DataChat BI](datachat_bi/) | Lightweight · AI + data safety | A complete safety boundary from natural language to read-only SQL, including guarded multi-table joins | 58 | [Chart report](datachat_bi/datachat_report.html) |
 
@@ -33,7 +33,7 @@ python -m pip install -r requirements.txt
 # DataChat BI  http://127.0.0.1:8002
 python start_all.py
 
-# 122 automated tests + three offline demos; exits non-zero on any failure
+# 127 automated tests + three offline demos; exits non-zero on any failure
 python verify_all.py
 ```
 
@@ -56,10 +56,10 @@ The most common failure of knowledge-base QA is not "no answer" but "a plausible
 - Character-offset chunking; every piece of evidence keeps its `source`, `chunk_id`, and original character range, so it can be replayed against the source text.
 - BM25 and a lightweight hashed character n-gram vector run in parallel and are fused with RRF; the hashed vector is not presented as a neural semantic embedding. Setting `INSIGHTRAG_EMBEDDING_*` switches the vector channel to an OpenAI-compatible embedding endpoint; the default stays fully offline.
 - Offline extractive answering; with an OpenAI-compatible endpoint configured, online generation is available, but sentences without valid citation IDs are filtered out, and the answer falls back to the offline summary if none remain.
-- Gold-set evaluation reports Recall@k, MRR, citation-ID validity, and latency; zero-citation cases are recorded as `N/A` instead of a fake 100%.
+- Gold-set evaluation reports Recall@k, MRR, citation-ID validity, human faithfulness, and latency; faithfulness annotations are matched by answer SHA-256, and unlabeled or stale cases are recorded as `N/A` instead of a fake 100%.
 - SQLite persistence with whole-source replacement, so re-ingestion never accumulates duplicate corpus.
 
-The demo set contains 3 Chinese policy documents, 13 chunks, and 12 gold questions. Current results: Recall@3 = 1.0, MRR = 1.0, citation-ID validity = 1.0, average latency ≈14 ms (varies by machine). These numbers validate the pipeline only and say nothing about production corpora. See [insightrag/README.md](insightrag/README.md) (Chinese).
+The demo set contains 3 Chinese policy documents, 13 chunks, and 12 gold questions. Current results: Recall@3 = 1.0, MRR = 1.0, citation-ID validity = 1.0, human faithfulness = 1.0 (only 6 of 12 cases are annotated; the rest are `N/A`), average latency ≈14 ms (varies by machine). These numbers validate the pipeline only and say nothing about production corpora. See [insightrag/README.md](insightrag/README.md) (Chinese).
 
 ### PromptLens · Prompt Versioning and Reproducible Evaluation
 
@@ -103,7 +103,7 @@ Demo data: 48 deterministic orders plus two dimension tables, 9 question types, 
 ai-portfolio/
 ├─ index.html              # Portfolio dashboard (open locally)
 ├─ start_all.py            # Start InsightRAG and DataChat BI with health checks
-├─ verify_all.py           # 122 tests + three offline demos
+├─ verify_all.py           # 127 tests + three offline demos
 ├─ requirements.txt
 ├─ insightrag/             # Flagship: hybrid retrieval, citation validation, gold-set evaluation
 ├─ promptlens/             # Lightweight: prompt versioning and reproducible evaluation
@@ -112,7 +112,7 @@ ai-portfolio/
 
 ## Honesty Boundaries
 
-- InsightRAG's corpus is 3 demo documents; Recall/MRR do not extrapolate to production knowledge bases, and citation-ID validity checks numbering only — it is not semantic faithfulness.
+- InsightRAG's corpus is 3 demo documents; Recall/MRR do not extrapolate to production knowledge bases, and citation-ID validity checks numbering only — it is not semantic faithfulness. Human faithfulness covers only 6 manually reviewed offline snapshots; unlabeled or stale cases are N/A, and it does not represent online generation or production faithfulness.
 - PromptLens example metrics come from a mock provider and validate the pipeline only; they are not evidence of model quality improvement.
 - DataChat BI's 48 orders and rule-based phrasings demonstrate a safety boundary; joins are limited to allowlisted dimension relationships and are not general natural-language understanding; the offline mode rejects uncovered phrasings.
 - All three projects are single-machine demos without accounts, access control, distributed indexing, or production-grade observability.

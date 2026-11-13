@@ -79,7 +79,7 @@
     .source-meta { color: var(--muted); font-size: 11px; font-weight: 400; }
     .source-snippet { color: #4c5a51; font-size: 13px; margin-top: 7px; }
     .empty { color: var(--muted); padding: 16px 0; font-size: 13px; }
-    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
     .metric { border: 1px solid var(--line); background: #fbfcfb; border-radius: 10px; padding: 15px; }
     .metric strong { display: block; font-size: 22px; font-variant-numeric: tabular-nums; }
     .metric span { color: var(--muted); font-size: 12px; }
@@ -172,10 +172,12 @@
         <div class="metrics">
           <div class="metric"><strong id="recallMetric">—</strong><span>Recall@k</span></div>
           <div class="metric"><strong id="mrrMetric">—</strong><span>MRR</span></div>
-          <div class="metric"><strong id="citationMetric">—</strong><span>引用编号合法率（非语义忠实度）</span></div>
+          <div class="metric"><strong id="citationMetric">—</strong><span>引用编号合法率（仅编号校验）</span></div>
+          <div class="metric"><strong id="faithfulnessMetric">—</strong><span>语义忠实度（人工标注）</span></div>
           <div class="metric"><strong id="latencyMetric">—</strong><span>平均延迟</span></div>
         </div>
-        <div class="table-wrap"><table class="eval-table"><thead><tr><th>问题</th><th>检索来源</th><th>Recall</th><th>倒数排名</th></tr></thead><tbody id="evaluationRows"></tbody></table></div>
+        <p class="hint" id="faithfulnessNote" hidden></p>
+        <div class="table-wrap"><table class="eval-table"><thead><tr><th>问题</th><th>检索来源</th><th>Recall</th><th>倒数排名</th><th>忠实度</th></tr></thead><tbody id="evaluationRows"></tbody></table></div>
       </div>
     </section>
 
@@ -314,12 +316,19 @@
         byId("recallMetric").textContent = percent(data.recall_at_k);
         byId("mrrMetric").textContent = Number(data.mrr).toFixed(3);
         byId("citationMetric").textContent = percent(data.citation_id_valid_rate);
+        byId("faithfulnessMetric").textContent = percent(data.semantic_faithfulness_rate);
         byId("latencyMetric").textContent = `${data.average_latency_ms} ms`;
+        const note = byId("faithfulnessNote");
+        note.hidden = false;
+        note.textContent = `${data.faithfulness_metric_note} 已标注 ${data.faithfulness_labeled_cases} 条，未标注 ${data.faithfulness_unlabeled_cases} 条，指纹失效 ${data.faithfulness_stale_cases} 条。`;
         const rows = byId("evaluationRows");
         rows.replaceChildren();
         data.details.forEach(detail => {
           const row = document.createElement("tr");
-          [detail.question, detail.retrieved_sources.join("、") || "无", percent(detail.recall_at_k), Number(detail.reciprocal_rank).toFixed(3)].forEach(value => {
+          const faithfulnessText = detail.faithfulness_status === "labeled"
+            ? (detail.faithfulness ? "是" : "否")
+            : (detail.faithfulness_status === "stale" ? "快照失效（N/A）" : "N/A");
+          [detail.question, detail.retrieved_sources.join("、") || "无", percent(detail.recall_at_k), Number(detail.reciprocal_rank).toFixed(3), faithfulnessText].forEach(value => {
             addTextElement(row, "td", "", value);
           });
           rows.appendChild(row);

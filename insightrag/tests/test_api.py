@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 from pathlib import Path
 import tempfile
 import unittest
@@ -82,6 +83,55 @@ class ApiTests(unittest.TestCase):
         self.assertTrue(replaced.json()["replaced"])
         self.assertTrue(replaced.json()["unchanged"])
         self.assertEqual(self.client.get("/api/stats").json()["documents"], 1)
+
+    def test_evaluate_accepts_faithfulness_annotations(self) -> None:
+        content = "差旅管理规范。国内出差住宿限额为每晚五百元。"
+        self.client.post(
+            "/api/ingest", json={"source": "faith.txt", "content": content}
+        )
+        answer = self.client.post(
+            "/api/query", json={"question": "住宿限额是多少？", "top_k": 3}
+        ).json()["answer"]
+        digest = hashlib.sha256(answer.encode("utf-8")).hexdigest()
+        response = self.client.post(
+            "/api/evaluate",
+            json={
+                "top_k": 3,
+                "cases": [
+                    {
+                        "question": "住宿限额是多少？",
+                        "expected_sources": ["faith.txt"],
+                        "faithfulness": {"faithful": True, "answer_sha256": digest},
+                    },
+                    {
+                        "question": "住宿限额是多少？",
+                        "expected_sources": ["faith.txt"],
+                    },
+                ],
+            },
+        )
+        self.assertEqual(response.status_code, 200, response.text)
+        data = response.json()
+        self.assertEqual(data["faithfulness_labeled_cases"], 1)
+        self.assertEqual(data["faithfulness_unlabeled_cases"], 1)
+        self.assertEqual(data["faithfulness_stale_cases"], 0)
+        self.assertEqual(data["semantic_faithfulness_rate"], 1.0)
+        self.assertEqual(data["details"][0]["faithfulness_status"], "labeled")
+        self.assertEqual(data["details"][1]["faithfulness_status"], "unlabeled")
+
+        invalid = self.client.post(
+            "/api/evaluate",
+            json={
+                "cases": [
+                    {
+                        "question": "住宿限额是多少？",
+                        "expected_sources": ["faith.txt"],
+                        "faithfulness": {"faithful": "yes"},
+                    }
+                ]
+            },
+        )
+        self.assertEqual(invalid.status_code, 422)
 
     def test_ingest_does_not_accept_server_file_path(self) -> None:
         response = self.client.post(
